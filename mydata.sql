@@ -249,3 +249,10 @@ CREATE TABLE Users
   Age NUMBER(2) NOT NULL CHECK (Age BETWEEN 0 AND 75),
   UserType VARCHAR(10) NOT NULL CHECK (UserType IN ('admin', 'student'))
 );
+
+CREATE TABLE Sessions
+(
+  SessionID VARCHAR(100) PRIMARY KEY,
+  User_Id INT NOT NULL,
+  CONSTRAINT FK_UserID FOREIGN KEY (User_Id) REFERENCES Users(User_Id)
+);

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"html/template"
 
+	"crypto/rand"
+	"encoding/base64"
 	"net/http"
 	"strconv"
 	"strings"
@@ -86,6 +88,7 @@ var (
 )
 var db *sql.DB
 var err error
+
 //var store = sessions.NewCookieStore([]byte("msc-project"))
 
 func main() {
@@ -116,7 +119,7 @@ func main() {
 	http.HandleFunc("/deletequestion", Auth(deletequestion))
 	//student part
 	// Route to show all questions to student
-	http.HandleFunc("/viewquestions", (viewquestions))
+	http.HandleFunc("/viewquestions", Auth(viewquestions))
 
 	// Route to answer the questions by student
 	http.HandleFunc("/answerquestions", (answerquestions))
@@ -268,10 +271,24 @@ func registerAuthorization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(n)
 		panic(err)
 	}
-
+	//session added
+	// session, err := store.New(r, "session")
+	// session.Values["User_Id"] = User_Id
+	// session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 	return
 
+}
+
+func generateSessionID() string {
+	// Generate 32 bytes of random data
+	bytes := make([]byte, 32)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	// Encode the random data as a base64 string
+	return base64.StdEncoding.EncodeToString(bytes)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -301,15 +318,30 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
 		return
 	}
-
+	fmt.Println("login halfway")
 	// check to see if hash of password exist in the database
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err == nil {
-		session, _ := store.Get(r, "session")
+		session, _ := store.New(r, "session")
 		session.Values["User_Id"] = User_Id
 		session.Save(r, w)
+
+		
+		// Generate a new session ID
+		sessionID := generateSessionID()
+		session.Options.MaxAge = 3600
+		fmt.Println("the session is", sessionID)
+
+		// Insert a new row into the Sessions table
+		_, err = db.Exec("INSERT INTO Sessions (SessionID, User_Id) SELECT $1, User_Id FROM Users WHERE Username = $2", sessionID, username)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
 		http.Redirect(w, r, "/index", http.StatusSeeOther)
 		// templates.ExecuteTemplate(w, "datavault.html", "Logged In") templates works perfectly
+		fmt.Println("login halfway 2")
 		return
 	}
 	fmt.Println(err)
@@ -602,6 +634,33 @@ func deletequestion(w http.ResponseWriter, r *http.Request) {
 
 }
 
+//real one
+func getUser(r *http.Request) *int {
+    cookie, err := r.Cookie("session")
+    if err != nil {
+        return nil
+    }
+
+    sessionID := cookie.Value
+    row := db.QueryRow("SELECT User_Id FROM Users WHERE Username = (SELECT Username FROM Sessions WHERE SessionID = $1)", sessionID)
+    //row := db.QueryRow("SELECT User_Id FROM Users WHERE Email = (SELECT Email FROM Sessions WHERE SessionID = $1)", sessionID)
+    var userID int
+    err = row.Scan(&userID)
+    if err != nil {
+		if err == sql.ErrNoRows {
+			// handle "no rows in result set" error here
+			fmt.Println("No rows in result set")
+		} else {
+			// handle other errors here
+			fmt.Println("Error retrieving user ID:", err)
+		}
+		return nil
+	}
+	fmt.Println("User ID:", userID)
+    return &userID
+}
+
+
 // student part
 // function to show all questions to student
 func viewquestions(w http.ResponseWriter, r *http.Request) {
@@ -653,22 +712,22 @@ func viewquestions(w http.ResponseWriter, r *http.Request) {
 // 	return u
 // }
 
-func getUser(r *http.Request) *int {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		return nil
-	}
+// func getUser(r *http.Request) *int {
+// 	cookie, err := r.Cookie("session")
+// 	if err != nil {
+// 		return nil
+// 	}
 
-	sessionID := cookie.Value
-	row := db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", sessionID)
-	var userID int
-	err = row.Scan(&userID)
-	if err != nil {
-		return nil
-	}
+// 	sessionID := cookie.Value
+// 	row := db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", sessionID)
+// 	var userID int
+// 	err = row.Scan(&userID)
+// 	if err != nil {
+// 		return nil
+// 	}
 
-	return &userID
-}
+// 	return &userID
+// }
 
 // // cool but issues
 func Alreadyloggedin(r *http.Request) (int, error) {
@@ -818,4 +877,3 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.ExecuteTemplate(w, "testresults.html", data)
 }
-
