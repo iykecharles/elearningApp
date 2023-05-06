@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create a new topic</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      h1 {
+        color: #1abc9c;
+      }
+      .form-control {
+        border-color: #1abc9c;
+        border-radius: 0;
+      }
+      .form-control:focus {
+        box-shadow: none;
+        border-color: #28a745;
+      }
+      .btn-primary {
+        background-color: #1abc9c;
+        border-color: #1abc9c;
+        border-radius: 0;
+      }
+      .btn-primary:hover {
+        background-color: #28a745;
+        border-color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+  
+    <form action="/updatequestion" method="post">
+      <input type="hidden" name="questions_id" value="{{.QuestionID}}">
+      <div class="container">
+        <h1 class="text-center mt-5 mb-4">Update Questions</h1>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="form-group">
+              <label for="topicsName">Topic Name</label>
+              <input type="text" class="form-control" id="topic-name" value="{{.TopicsName}}" name="topicsName" required>
+            </div>
+            <div class="form-group">
+              <label for="question_prompt">Question Prompt</label>
+              <textarea class="form-control" id="topic-text" value="{{.QuestionPrompt}}" name="question_prompt" rows="5" required>{{.QuestionPrompt}}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="option_a">Option A</label>
+              <input type="text" class="form-control" id="topic-creator" value="{{.OptionA}}" name="option_a" required>
+            </div>
+            <div class="form-group">
+              <label for="option_b">Option B</label>
+              <input type="text" class="form-control" id="topic-creator" value="{{.OptionB}}" name="option_b" required>
+            </div>
+            <div class="form-group">
+              <label for="option_c">Option C</label>
+              <input type="text" class="form-control" id="topic-creator" value="{{.OptionC}}" name="option_c" required>
+            </div>
+            <div class="form-group">
+              <label for="option_d">Option D</label>
+              <input type="text" class="form-control" id="topic-creator" value="{{.OptionD}}" name="option_d" required>
+            </div>
+            <div class="form-group">
+              <label for="correct_option">Correct Option</label>
+              <input type="number" class="form-control" id="topic-creator" value="{{.CorrectOption}}" name="correct_option" min="1" max="4" required>
+            </div>
+            
+
+            <div class="form-group text-center">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>   
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>

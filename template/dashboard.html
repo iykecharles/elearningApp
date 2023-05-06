@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Subject Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-dark">
+    <div class="container">
+        <div class="row">
+        <div class="col text-center">
+            <h1 class="text-white">Subject Dashboard</h1>
+        </div>
+        </div>
+        {{range .}}
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white fw-bold fs-4">{{.TopicsName}}</div>
+            <div class="card-body">
+                <p class="card-text">{{.TopicsText}}</p>
+                
+                <div class="row">
+                    <div class="col-sm-6">
+                        <p class="card-text"><small class="text-muted">Created by:</small> {{.TopicsCreator}}</p>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <p class="card-text"><small class="text-muted">Date:</small> {{.CreatedAt}}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <a class="btn btn-success" href="/updatetopic?topicsId={{.TopicID}}">Update</a>
+                    <a class="btn btn-danger" href="/deletetopic?topicsId={{.TopicID}}">Delete</a>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        

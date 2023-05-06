@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create a new topic</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      h1 {
+        color: #1abc9c;
+      }
+      .form-control {
+        border-color: #1abc9c;
+        border-radius: 0;
+      }
+      .form-control:focus {
+        box-shadow: none;
+        border-color: #28a745;
+      }
+      .btn-primary {
+        background-color: #1abc9c;
+        border-color: #1abc9c;
+        border-radius: 0;
+      }
+      .btn-primary:hover {
+        background-color: #28a745;
+        border-color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+    <form action="/insertedtopic" method="post">
+        <div class="container">
+        <h1 class="text-center mt-5 mb-4">Create A New Topic</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+            <form>
+                <div class="form-group">
+                <label for="topicsName">Topic Name</label>
+                <input type="text" class="form-control" id="topic-name" name="topicsName" required>
+                </div>
+                <div class="form-group">
+                <label for="topicsText">Topic Text</label>
+                <textarea class="form-control" id="topic-text" name="topicsText" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                <label for="topicsCreator">Topic Creator</label>
+                <input type="text" class="form-control" id="topic-creator" name="topicsCreator" required>
+                </div>
+                <div class="form-group text-center">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+            </div>
+        </div>
+        </div>
+    </form>  
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>

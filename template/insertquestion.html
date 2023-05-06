@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Create a new topic</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    h1 {
+      color: #1abc9c;
+    }
+
+    .form-control {
+      border-color: #1abc9c;
+      border-radius: 0;
+    }
+
+    .form-control:focus {
+      box-shadow: none;
+      border-color: #28a745;
+    }
+
+    .btn-primary {
+      background-color: #1abc9c;
+      border-color: #1abc9c;
+      border-radius: 0;
+    }
+
+    .btn-primary:hover {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="text-center mt-5 mb-4">Create A New Question</h1>
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <form action="/insertedquestion" method="post">
+          <input type="hidden" name="questionID" value="{{.QuestionID}}">
+          <div class="form-group">
+            <label for="question_prompt">Question Prompt</label>
+            <textarea class="form-control" id="topic-text" name="question_prompt" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="option_a">Option A</label>
+            <textarea class="form-control" id="topic-text" name="option_a" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="option_b">Option B</label>
+            <textarea class="form-control" id="topic-text" name="option_b" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="option_c">Option C</label>
+            <textarea class="form-control" id="topic-text" name="option_c" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="option_d">Option D</label>
+            <textarea class="form-control" id="topic-text" name="option_d" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="correct_option">Correct Option</label>
+            <textarea class="form-control" id="topic-text" name="correct_option" rows="5" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="topicsName">Topics Name</label>
+            <textarea class="form-control" id="topic-text" name="topicsName" rows="5" required></textarea>
+          </div>
+          <div class="form-group text-center">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

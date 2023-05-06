@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test Page</title>
+</head>
+<body>
+	<h1>Test</h1>
+	<p>Answer the following questions:</p>
+	<form method="post" action="/submit-test">
+		{{range .Questions}}
+			<div>
+				<h2>{{.QuestionPrompt}}</h2>
+				<input type="radio" name="answer{{.ID}}" value="1" id="{{.ID}}_1"><label for="{{.ID}}_1">{{.OptionA}}</label><br>
+				<input type="radio" name="answer{{.ID}}" value="2" id="{{.ID}}_2"><label for="{{.ID}}_2">{{.OptionB}}</label><br>
+				<input type="radio" name="answer{{.ID}}" value="3" id="{{.ID}}_3"><label for="{{.ID}}_3">{{.OptionC}}</label><br>
+				<input type="radio" name="answer{{.ID}}" value="4" id="{{.ID}}_4"><label for="{{.ID}}_4">{{.OptionD}}</label><br>
+			</div>
+		{{end}}
+		<input type="submit" value="Submit Test">
+	</form>
+</body>
+</html>
+
+//function to show all questions to student
+func viewquestions(w http.ResponseWriter, r *http.Request) {
+    rows, err := db.Query("SELECT questions_id, topicsName, question_prompt, option_a, option_b, option_c, option_d, correct_option FROM questions")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer rows.Close()
+
+    type Question struct {
+        ID            int64
+        TopicsName    string
+        Question      string
+        OptionA       string
+        OptionB       string
+        OptionC       string
+        OptionD       string
+        CorrectOption int64
+    }
+
+    questions := []Question{}
+    for rows.Next() {
+        var question Question
+        if err := rows.Scan(&question.ID, &question.TopicsName, &question.Question, &question.OptionA, &question.OptionB, &question.OptionC, &question.OptionD, &question.CorrectOption); err != nil {
+            log.Fatal(err)
+        }
+        questions = append(questions, question)
+    }
+
+    if err := rows.Err(); err != nil {
+        log.Fatal(err)
+    }
+
+    tpl.ExecuteTemplate(w, "viewquestions.html", questions)
+}
+
+//function to answer the questions by student
+func answerquestions(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Redirect(w, r, "/viewquestions", http.StatusSeeOther)
+        return
+    }
+
+    userID := getLoggedUserID(r)
+
+    err := r.ParseForm()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    testResults := []TestResult{}
+    for key, values := range r.Form {
+        if !strings.HasPrefix(key, "question-") {
+            continue
+        }
+
+        questionID, err := strconv.ParseInt(key[9:], 10, 64)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        option, err := strconv.ParseInt(values[0], 10, 64)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        row := db.QueryRow("SELECT correct_option FROM questions WHERE questions_id = $1", questionID)
+        var correctOption int64
+        err = row.Scan(&correctOption)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        score := 0
+        if option == correctOption {
+            score = 1
+        }
+
+        testResults = append(testResults, TestResult{
+            UserID:      userID,
+            QuestionID:  questionID,
+            Score:       score,
+            CreatedAt:   time.Now(),
+        })
+    }
+
+    for _, testResult := range testResults {
+        _, err = db.Exec("INSERT INTO test_results (user_id, questions_id, score, created_at) VALUES ($1, $2, $3, $4)", testResult.UserID, testResult.QuestionID, testResult.Score, testResult.CreatedAt)
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
+
+    http.Redirect(w, r, "/testresults", http.StatusSeeOther)
+}
+
+
+func takeTest(w http.ResponseWriter, r *http.Request) {
+    // Make sure the user is a student
+    user := getUserFromSession(r)
+    if user == nil || user.UserType != "student" {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+
+    // Get all questions from the database
+    rows, err := db.Query("SELECT * FROM questions")
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    // Store questions in a slice of Question structs
+    var questions []Question
+    for rows.Next() {
+        var q Question
+        err = rows.Scan(&q.ID, &q.TopicsName, &q.Prompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.CreatedAt)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        questions = append(questions, q)
+    }
+
+    // If there are no questions, display an error message
+    if len(questions) == 0 {
+        http.Error(w, "No questions found", http.StatusNotFound)
+        return
+    }
+
+    // If the form has been submitted, process the results
+    if r.Method == "POST" {
+        // Store the user's answers in a slice of Answer structs
+        var answers []Answer
+        for _, q := range questions {
+            ans := Answer{
+                QuestionID: q.ID,
+                Answer:     r.FormValue(fmt.Sprintf("question%d", q.ID)),
+            }
+            answers = append(answers, ans)
+        }
+
+        // Calculate the user's score
+        score := 0
+        for _, ans := range answers {
+            q := getQuestionFromSlice(ans.QuestionID, questions)
+            if q.CorrectOption == ans.Answer {
+                score++
+            }
+        }
+
+        // Insert the test results into the database
+        stmt, err := db.Prepare("INSERT INTO TestResults (User_Id, questions_id, Score) VALUES ($1, $2, $3)")
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        defer stmt.Close()
+
+        for _, ans := range answers {
+            _, err = stmt.Exec(user.ID, ans.QuestionID, score)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+        }
+
+        // Display the user's score
+        data := struct {
+            Score int
+        }{
+            Score: score,
+        }
+        err = templates.ExecuteTemplate(w, "testresult.html", data)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        return
+    }
+
+    // Render the test page
+    data := struct {
+        Questions []Question
+    }{
+        Questions: questions,
+    }
+    err = templates.ExecuteTemplate(w, "test.html", data)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    
+}
+
+// Submits a response to a question
+func submitResponse(response Response) error {
+	// Prepare the SQL query
+	query := `
+        INSERT INTO Responses (QuestionID, Answer, IsCorrect, CreatedAt)
+        VALUES ($1, $2, $3, $4, $5)
+    `
+	// Execute the query with the provided response data
+	_, err := db.Exec(query, response.QuestionID, response.Answer, response.IsCorrect, response.CreatedAt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

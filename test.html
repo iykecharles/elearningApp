@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Question</title>
+</head>
+<body>
+    <h1>Create New Question</h1>
+    <form method="POST" action="/createQuestion">
+        <label for="question_prompt">Question Prompt:</label><br>
+        <input type="text" id="question_prompt" name="question_prompt"><br>
+
+        <label for="option_a">Option A:</label><br>
+        <input type="text" id="option_a" name="option_a"><br>
+
+        <label for="option_b">Option B:</label><br>
+        <input type="text" id="option_b" name="option_b"><br>
+
+        <label for="option_c">Option C:</label><br>
+        <input type="text" id="option_c" name="option_c"><br>
+
+        <label for="option_d">Option D:</label><br>
+        <input type="text" id="option_d" name="option_d"><br>
+
+        <label for="correct_option">Correct Option:</label><br>
+        <input type="number" id="correct_option" name="correct_option" min="1" max="4"><br>
+
+        <label for="topicsId_str">Topic ID:</label><br>
+        <input type="number" id="topic_id" name="topicsId_str"><br>
+
+        <button type="submit">Create Question</button>
+    </form>
+</body>
+</html>
+
+
+func displayQuestions(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT questions.question_id, questions.question_prompt, questions.option_a, questions.option_b, questions.option_c, questions.option_d, questions.correct_option, topics.topic_name FROM questions JOIN topics ON questions.topicsId = topics.topicsId")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var questions []Question
+	for rows.Next() {
+		var q Question
+		err := rows.Scan(&q.QuestionID, &q.QuestionPrompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.TopicName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		questions = append(questions, q)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// render the questions template with the retrieved questions data
+	err = templates.ExecuteTemplate(w, "questions.html", questions)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func displayQuestions(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT questions_id, question_prompt, option_a, option_b, option_c, option_d, correct_option, topicsId FROM questions;")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var questions []Question
+	for rows.Next() {
+		q := Question{}
+		err := rows.Scan(&q.QuestionId, &q.QuestionPrompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.TopicId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		questions = append(questions, q)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("displayquestions.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Questions []Question
+	}{
+		Questions: questions,
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

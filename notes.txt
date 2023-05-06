@@ -1,0 +1,1228 @@
+go mod file
+
+go mod tidy in the terminal
+
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	"golang.org/x/crypto/bcrypt"
+
+
+	_ "github.com/lib/pq"
+)
+
+var (
+	templates = template.Must(template.ParseGlob("template/*"))
+)
+var err error
+
+func main() {
+	fmt.Println("initailizing the database")
+	db, err := sql.Open("postgres", "user=postgres password=charles dbname=testing host=localhost port=5432 sslmode=disable")
+	if err != nil {
+		fmt.Println("Error connecting to database:", err.Error())
+		return
+	}
+	fmt.Println("database seems okay")
+	defer db.Close()
+
+	http.HandleFunc("/register", register)
+	http.HandleFunc("/registerAuth", registerAuthorization)
+	err = http.ListenAndServe("localhost:8000", nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func register(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "register.html", nil)
+
+}
+
+func registerAuthorization(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "register.html", nil)
+
+}
+
+
+//video
+	<section class="showcase">
+			<div class="video-container">
+				<video src="https://traversymedia.com/downloads/video.mov" autoplay muted loop></video>
+			</div>
+			<div class="content">
+				<h1>Shoot For The Stars</h1>
+				<h3>Full screen video landing page</h3>
+				<a href="#about" class="btn">Read More</a>
+			</div>
+		</section>
+
+		<section id="about">
+			<h1>About</h1>
+			<p>
+				This is a landing page with a full screen video background. Feel free to
+				use this landing page in your projects. keep adding sections, change the
+				video, content , etc
+			</p>
+
+			<h2>Follow Me On Social Media</h2>
+
+			<div class="social">
+			<a href="https://twitter.com/traversymedia" target="_blank"><i class="fab fa-twitter fa-3x"></i></a>
+				<a href="https://facebook.com/traversymedia" target="_blank"><i class="fab fa-facebook fa-3x"></i></a>
+				<a href="https://github.com/bradtraversy" target="_blank"><i class="fab fa-github fa-3x"></i></a>
+				<a href="https://www.linkedin.com/in/bradtraversy" target="_blank"><i class="fab fa-linkedin fa-3x"></i></a>
+			</div>
+		</section>
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+		integrity="sha512-Q/dOq3pvH2qsD/q1Td+CeuadOJzPvFjyfDqmXmfUbl2sU/P1sUkTlT+wT6ojxPdHPObWyTawMViqL7X9XNvwUA=="
+		crossorigin="anonymous" />
+
+
+		sunda
+		package main
+
+import (
+	"database/sql"
+	"fmt"
+	"html/template"
+	"net/http"
+	"strconv"
+	"unicode"
+
+	"golang.org/x/crypto/bcrypt"
+
+	//"github.com/gorilla/context"
+	"github.com/gorilla/sessions"
+	_ "github.com/lib/pq"
+)
+
+var (
+	templates = template.Must(template.ParseGlob("template/*"))
+)
+var db *sql.DB
+var err error
+var store = sessions.NewCookieStore([]byte("msc-project"))
+
+func main() {
+	fmt.Println("initailizing the PostgreSQL database.....")
+	db, err = sql.Open("postgres", "user=postgres password=charles dbname=elearning host=localhost port=5432 sslmode=disable")
+	if err != nil {
+		fmt.Println("Error connecting to the PostgreSQL database:", err.Error())
+		return
+	}
+	fmt.Println("PostgreSQL database seems okay")
+	defer db.Close()
+
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/home", home)
+	http.HandleFunc("/register", register)
+	http.HandleFunc("/registerAuthorization", registerAuthorization)
+	http.HandleFunc("/login", login)
+	http.HandleFunc("/loginAuthorization", loginAuthorization)
+	http.HandleFunc("/learner", Auth(learner))
+	http.HandleFunc("/teacher", Auth(teacher))
+	http.ListenAndServe("localhost:8080", nil)
+	//http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
+	//http.ListenAndServe("localhost:8000", context.Clearhandler(http.DefaultServeMux))
+
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "home.html", nil)
+
+}
+
+// register serves form for registring new users
+func register(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "register.html", nil)
+
+}
+//initialization
+var usernameAlphanum = true
+var usernameLength bool
+var passwordLowerC, passwordUpperC, passwordNumber, passwordSpecial, passwordNoSpaces, passwordLenght bool
+
+
+
+
+// registerAuthorization creates new user in database
+func registerAuthorization(w http.ResponseWriter, r *http.Request) {
+	/*
+		Usernames criteria Verification
+		Password criteria Verification
+		Check if same username exist in the database
+		Convert the password string to bycrypt hash password
+		Store the Username and bycrypt hash in the database
+
+
+	*/
+	//	Usernames criteria Verification
+	r.ParseForm()
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	firstname := r.FormValue("firstname")
+	lastname := r.FormValue("lastname")
+	agestr := r.FormValue("age")
+	gender := r.FormValue("gender")
+	email := r.FormValue("email")
+	usertype := r.FormValue("usertype")
+
+	//age conversion from string to integer
+	age, err := strconv.Atoi(agestr)
+	if err != nil {
+		http.Error(w, "invalid age valid", http.StatusBadRequest)
+	}
+
+	//age check
+	//if 18 <= age || age >= 100 {
+	//	http.Error(w, "use correct age", http.StatusBadRequest)
+	//}
+
+	// check for alphanumeric characters
+	for _, use := range username {
+		if unicode.IsLetter(use) == false && unicode.IsNumber(use) == false {
+			usernameAlphanum = false
+		}
+	}
+
+	//username length
+	if 6 <= len(username) && len(username) >= 30 {
+		usernameLength = true
+	}
+
+	passwordNoSpaces = true
+
+	for _, char := range password {
+		switch {
+		// func IsLower(r rune) bool
+		case unicode.IsLower(char):
+			passwordLowerC = true
+		// func IsUpper(r rune) bool
+		case unicode.IsUpper(char):
+			passwordUpperC = true
+		// func IsNumber(r rune) bool
+		case unicode.IsNumber(char):
+			passwordNumber = true
+		// func IsPunct(r rune) bool, func IsSymbol(r rune) bool
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			passwordSpecial = true
+		// func IsSpace(r rune) bool, type rune = int32
+		case unicode.IsSpace(int32(char)):
+			passwordNoSpaces = false
+		}
+	}
+	if 8 < len(password) && len(password) < 64 {
+		passwordLenght = true
+	}
+	/*
+	if !passwordLowerC || !passwordUpperC || !passwordNumber || !passwordSpecial || !passwordLenght || !passwordNoSpaces || !usernameAlphanum || !usernameLength {
+		templates.ExecuteTemplate(w, "register.html", "Kindly check to see that your username and password meet criteria")
+		return
+	}
+	*/
+	if username == "" || firstname == "" || lastname == "" || agestr == "" || password == "" || gender == "" || email == "" {
+		templates.ExecuteTemplate(w, "register.html", "Ensure that you fill all the fields")
+		return
+	}
+
+	// check to see if username exists in the database
+	smnt := "SELECT User_Id FROM users WHERE username = $1"
+	row := db.QueryRow(smnt, username)
+	var User_Id string
+	err = row.Scan(&User_Id)
+	if err != sql.ErrNoRows {
+		templates.ExecuteTemplate(w, "register.html", "The Username entered already exist")
+		fmt.Println(err)
+		return
+	}
+	// creating hash from given password for better security
+	var hash []byte
+	hash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	var insertStmnt *sql.Stmt
+	insertStmnt, err = db.Prepare("INSERT INTO users (username, firstname, lastname, age, gender, email, usertype, hash) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);")
+	if err != nil {
+		fmt.Println("error preparing statement:", err)
+		templates.ExecuteTemplate(w, "register.html", "there was a problem registering account")
+		return
+	}
+	defer insertStmnt.Close()
+
+	var res sql.Result
+	//  func (s *Stmt) Exec(args ...interface{}) (Result, error)
+	res, err = insertStmnt.Exec(username, firstname, lastname, age, gender, email, usertype, hash)
+	rowsAffected, _ := res.RowsAffected()
+	lastInserted, _ := res.LastInsertId()
+	fmt.Println("rowsAff:", rowsAffected)
+	fmt.Println("lastIns:", lastInserted)
+	if err != nil {
+		templates.ExecuteTemplate(w, "register.html", "There was an error registering account")
+		fmt.Println(err)
+		return
+	}
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	return
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "login.html", nil)
+
+}
+
+func loginAuthorization(w http.ResponseWriter, r *http.Request) {
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if username == "" || password == "" {
+		templates.ExecuteTemplate(w, "login.html", "Ensure that you fill all the fields")
+		return
+	}
+
+	//check to see if username exist in database
+	var User_Id, hash string
+	smt := `SELECT User_Id FROM User WHERE username = $1;`
+	row := db.QueryRow(smt, username)
+	err := row.Scan(&User_Id)
+	if err != nil {
+		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
+		return
+	}
+
+	// check to see if hash of password exist in the database
+	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	if err == nil {
+		session, _ := store.Get(r, "session")
+		session.Values["User_Id"] = User_Id
+		session.Save(r, w)
+		http.Redirect(w, r, "/datavault", http.StatusSeeOther)
+		// templates.ExecuteTemplate(w, "datavault.html", "Logged In") templates works perfectly
+		return
+	}
+
+	templates.ExecuteTemplate(w, "login.html", "Confirm Username and/or Password")
+
+}
+
+func Auth(HandlerFunc http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "session")
+		_, ok := session.Values["User_Id"]
+		if !ok {
+			http.Redirect(w, r, "/login", 302)
+			return
+		}
+		HandlerFunc.ServeHTTP(w, r)
+	}
+}
+
+func teacher(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "teacher.html", nil)
+
+}
+
+func learner(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "learner.html", nil)
+
+}
+
+type Question struct {
+    ID             int
+    QuestionPrompt string
+    OptionA        string
+    OptionB        string
+    OptionC        string
+    OptionD        string
+    CorrectOption  int
+    CreatedBy      int
+}
+
+type Response struct {
+    ID          int
+    QuestionID  int
+    StudentID   int
+    Answer      int
+    IsCorrect   bool
+    CreatedAt   time.Time
+}
+
+// Function to get all questions
+func getAllQuestions() ([]Question, error) {
+    var questions []Question
+    rows, err := db.Query("SELECT * FROM questions")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var question Question
+        err := rows.Scan(&question.ID, &question.QuestionPrompt, &question.OptionA, &question.OptionB, &question.OptionC, &question.OptionD, &question.CorrectOption, &question.CreatedBy)
+        if err != nil {
+            return nil, err
+        }
+        questions = append(questions, question)
+    }
+
+    return questions, nil
+}
+
+// Function to add a new question
+func addQuestion(question Question) error {
+    _, err := db.Exec("INSERT INTO questions(question, option_a, option_b, option_c, option_d, correct_option, created_by) VALUES($1, $2, $3, $4, $5, $6, $7)",
+        question.QuestionPrompt, question.OptionA, question.OptionB, question.OptionC, question.OptionD, question.CorrectOption, question.CreatedBy)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+// Function to get responses for a specific student
+func getResponsesForStudent(studentID int) ([]Response, error) {
+    var responses []Response
+    rows, err := db.Query("SELECT * FROM responses WHERE student_id = $1", studentID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var response Response
+        err := rows.Scan(&response.ID, &response.QuestionID, &response.StudentID, &response.An
+
+
+func results(w http.ResponseWriter, r *http.Request) {
+    // Query the database for all test results
+    rows, err := db.Query("SELECT username, score, answers FROM test_results")
+    if err != nil {
+        http.Error(w, "Error querying database: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    // Create a slice of Result structs to hold the test results
+    var results []Result
+
+    // Loop through the query results and append to the slice
+    for rows.Next() {
+        var username string
+        var score int
+        var answers string
+        err = rows.Scan(&username, &score, &answers)
+        if err != nil {
+            http.Error(w, "Error scanning rows: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        results = append(results, Result{Username: username, Score: score, Answers: answers})
+    }
+
+    // Execute the results template, passing in the slice of results
+    templates.ExecuteTemplate(w, "results.html", results)
+}
+
+
+{{ define "results.html" }}
+    <h1>Test Results</h1>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Score</th>
+            <th>Answers</th>
+        </tr>
+        {{ range . }}
+        <tr>
+            <td>{{ .Username }}</td>
+            <td>{{ .Score }}</td>
+            <td>{{ .Answers }}</td>
+        </tr>
+        {{ end }}
+    </table>
+{{ end }}
+
+
+http.HandleFunc("/results", Auth(results))
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Get Responses for Student</title>
+  </head>
+  <body>
+    <h1>Get Responses for Student</h1>
+    <form method="POST">
+      <label for="student_id">Student ID:</label>
+      <input type="text" id="student_id" name="student_id">
+      <br><br>
+      <input type="submit" value="Submit">
+    </form>
+    <br>
+    <p>Responses:</p>
+    <ul>
+      {% for response in responses %}
+        <li>{{ response }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Add Question</title>
+  </head>
+  <body>
+    <h1>Add Question</h1>
+    <form method="POST">
+      <label for="question_text">Question Text:</label>
+      <input type="text" id="question_text" name="question_text">
+      <br><br>
+      <label for="correct_answer">Correct Answer:</label>
+      <input type="text" id="correct_answer" name="correct_answer">
+      <br><br>
+      <input type="submit" value="Submit">
+    </form>
+    {% if message %}
+      <br>
+      <p>{{ message }}</p>
+    {% endif %}
+  </body>
+</html>
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Get All Questions</title>
+  </head>
+  <body>
+    <h1>All Questions</h1>
+    <ul>
+      {% for question in questions %}
+        <li>{{ question }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+
+dashboard.html<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bootstrap Album Example</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-dark">
+    <div class="container">
+        <h1 class="text-center mt-5 mb-5 text-light">Subjects</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                    <div class="card-header">Header</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Primary card title</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
+                            content.</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-success">Update</button>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+                    <div class="card-header">Header</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Secondary card title</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
+                            content.</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-success">Update</button>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+                    <div class="card-header">Header</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Success card title</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
+                            content.</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-success">Update</button>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            
+         inserttopic html
+		 <!DOCTYPE html>
+<html>
+  <head>
+    <title>Create a new topic</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center mt-5 mb-4">Create a new topic</h1>
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <form>
+            <div class="form-group">
+              <label for="topic-name">Topic Name</label>
+              <input type="text" class="form-control" id="topic-name" name="topic-name" required>
+            </div>
+            <div class="form-group">
+              <label for="topic-text">Topic Text</label>
+              <textarea class="form-control" id="topic-text" name="topic-text" rows="5" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="topic-creator">Topic Creator</label>
+              <input type="text" class="form-control" id="topic-creator" name="topic-creator" required>
+            </div>
+            <div class="form-group text-center">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
+
+
+CREATE TABLE Users
+(
+  User_Id INT PRIMARY KEY,
+  Username VARCHAR
+(50) NOT NULL,
+  Password VARCHAR
+(50) NOT NULL,
+  FirstName VARCHAR(50) NOT NULL,
+  LastName VARCHAR(50) NOT NULL,
+  Gender VARCHAR(50) NOT NULL,
+  Email VARCHAR(50) NOT NULL UNIQUE,
+  Hash VARCHAR(100) NOT NULL,
+  Age NUMBER(2) NOT NULL CHECK (Age BETWEEN 0 AND 75),
+  UserType VARCHAR(10) NOT NULL CHECK (UserType IN ('admin', 'student'))
+);
+
+
+-- create the Courses table
+CREATE TABLE Subjects
+(
+  SubjectId INT PRIMARY KEY,
+  SubjectName VARCHAR(255) NOT NULL,
+  SubjectText VARCHAR
+(255) NOT NULL
+);
+
+
+CREATE TABLE TestResults
+(
+  TestResultsId INT PRIMARY KEY,
+  User_Id INT NOT NULL,
+  SubjectId INT NOT NULL,
+  CorrectAnswers INT NOT NULL,
+  Score INT NOT NULL,
+  FOREIGN KEY (User_Id) REFERENCES Users(User_Id),
+  FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId)
+);
+
+CREATE TABLE questions
+(
+  questions_id BIGSERIAL PRIMARY KEY,
+  question_prompt TEXT NOT NULL,
+  option_a TEXT NOT NULL,
+  option_b TEXT NOT NULL,
+  option_c TEXT NOT NULL,
+  option_d TEXT NOT NULL,
+  correct_option INT NOT NULL,
+  created_by INT NOT NULL,
+  SubjectId INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE responses (
+  responses_id INT PRIMARY KEY,
+  questions_id INT NOT NULL,
+  User_Id INT NOT NULL,
+  answer INT NOT NULL,
+  is_correct BOOLEAN NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE topics
+(
+  topicsId BIGINT PRIMARY KEY,
+  topicsName VARCHAR(255) NOT NULL,
+  topicsText VARCHAR(255) NOT NULL,
+  topicscreator VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+
+
+
++---------------+      +---------------+     +--------------+      +--------------+     +---------------+
+|   User        |      |   Subject     |     |  Question    |      |   Answer     |     |  Test Result  |
++---------------+      +---------------+     +--------------+      +--------------+     +---------------+
+      |                        |                        |                     |                         |
+      |                        |                        |                     |                         |
+      |-------register-------->|                        |                     |                         |
+      |                        |                        |                     |                         |
+      |                        |                        |                     |                         |
+      |-------login---------->|                        |                     |                         |
+      |                        |                        |                     |                         |
+      |                        |------select subject---->|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |<----list of questions---|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |------select question--->|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |<-----question details---|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |------select answer---->|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |<-----answer feedback---|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |-----submit test result->|                     |                         |
+      |                        |                        |                     |                         |
+      |                        |                        |------list answers---->|                         |
+      |                        |                        |                     |                         |
+      |                        |                        |<-----answer details---|                         |
+      |                        |                        |                     |                         |
+      |                        |                        |------list questions->|                         |
+      |                        |                        |                     |                         |
+      |                        |                        |<-----question details-|                         |
+      |                        |                        |                     |                         |
+      |                        |                        |-------get result---->|                         |
+      |                        |                        |                     |                         |
+      |                        |                        |<-----result details--|                         |
+      |                        |                        |                     |                         |
+
+
+CREATE TABLE topic
+(
+  topicsId BIGINT PRIMARY KEY,
+  topicsName VARCHAR(255) NOT NULL,
+  topicsText VARCHAR(255) NOT NULL,
+  topicscreator VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+
+func updatetopic(w http.ResponseWriter, r *http.Request) {
+    if r.Method == http.MethodGet {
+        // Retrieve topic from database and render form
+        r.ParseForm()
+        topicsId := r.FormValue("topicsId")
+        smt := `SELECT * FROM topic WHERE topicsId = $1;`
+        u := Topic{}
+        row := db.QueryRow(smt, topicsId)
+        err = row.Scan(&u.TopicID, &u.TopicsName, &u.TopicsText, &u.TopicsCreator, &u.CreatedAt)
+        if err != nil {
+            fmt.Println(err)
+            http.Redirect(w, r, "/", 307)
+            return
+        }
+        err = templates.ExecuteTemplate(w, "updatetopic.html", u)
+        if err != nil {
+            panic(err.Error())
+        }
+    } else if r.Method == http.MethodPost {
+        // Process update request and redirect to updatedtopic.html
+        r.ParseForm()
+        topicsId := r.FormValue("topicsId")
+        topicsName := r.FormValue("topicsName")
+        topicsText := r.FormValue("topicsText")
+        topicsCreator := r.FormValue("topicsCreator")
+
+        if topicsName == "" || topicsText == "" || topicsCreator == "" {
+            templates.ExecuteTemplate(w, "updatetopic.html", "Error inserting data! Check all fields!")
+            return
+        }
+
+        upt := `UPDATE topic SET topicsName = $1, topicsText = $2, topicsCreator = $3 WHERE topicsId = $4;`
+        inst, err := db.Prepare(upt)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+
+        defer inst.Close()
+
+        res, err := inst.Exec(topicsName, topicsText, topicsCreator, topicsId)
+        checkError(err)
+
+        n, err := res.RowsAffected()
+        checkError(err)
+
+        fmt.Println(n)
+
+        http.Redirect(w, r, "/dashboard", http.StatusFound)
+    } else {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+    }
+}
+
+//former part code
+
+{{define "content"}}
+    <p>Welcome, {{.User.FirstName}} {{.User.LastName}}!</p>
+    <p>Click the button below to start the test.</p>
+    <form action="/test" method="GET">
+        <button type="submit" class="btn btn-primary">Start Test</button>
+    </form>
+{{end}}
+
+//starts here
+func handleQuiz(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		questions := getRandomQuestions(10)
+		renderQuestionsPage(w, questions)
+	} else if r.Method == http.MethodPost {
+		questionIDs := r.Form["question_id"]
+		studentID := 1 // replace with actual student ID
+		responses := []Response{}
+		for _, qIDStr := range questionIDs {
+			qID, err := strconv.Atoi(qIDStr)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			answerStr := r.Form.Get(fmt.Sprintf("question_%d", qID))
+			answer, err := strconv.Atoi(answerStr)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			response := Response{
+				QuestionID: qID,
+				StudentID:  studentID,
+				Answer:     answer,
+			}
+			if answer == getQuestion(qID).CorrectOption {
+				response.IsCorrect = true
+			}
+			responses = append(responses, response)
+		}
+		saveResponses(responses)
+		correctResponses := getCorrectResponses(studentID)
+		renderResultsPage(w, correctResponses)
+	}
+}
+
+func getRandomQuestions(n int) []Question {
+	rows, err := db.Query("SELECT * FROM Questions ORDER BY random() LIMIT $1", n)
+	if err != nil {
+		log.Println(err)
+		return []Question{}
+	}
+	defer rows.Close()
+	questions := []Question{}
+	for rows.Next() {
+		q := Question{}
+		err = rows.Scan(&q.ID, &q.QuestionPrompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.CreatedBy)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		questions = append(questions, q)
+	}
+	return questions
+}
+
+func renderQuestionsPage(w http.ResponseWriter, r *http.Request) {
+	// retrieve the current student's ID from the session cookie
+	session, err := store.Get(r, "session")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	studentID, ok := session.Values["studentID"].(int)
+	if !ok {
+		http.Error(w, "Invalid session", http.StatusBadRequest)
+		return
+	}
+
+	// retrieve the set of randomized quiz questions from the database
+	rows, err := db.Query("SELECT * FROM Questions ORDER BY RANDOM() LIMIT 10")
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// build a slice of Question structs from the database rows
+	questions := []Question{}
+	for rows.Next() {
+		var q Question
+		err := rows.Scan(&q.ID, &q.QuestionPrompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.CreatedBy)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		questions = append(questions, q)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// execute the questions template with the slice of randomized quiz questions
+	err = templates.ExecuteTemplate(w, "questions.html", questions)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// if the form has been submitted, process the student's responses and display their score
+	if r.Method == "POST" {
+		// retrieve the student's responses from the form data
+		responses := []Response{}
+		for i, q := range questions {
+			answer, err := strconv.Atoi(r.FormValue(fmt.Sprintf("question_%d", q.ID)))
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			response := Response{
+				ID:         i,
+				QuestionID: q.ID,
+				StudentID:  studentID,
+				Answer:     answer,
+				IsCorrect:  answer == q.CorrectOption,
+				CreatedAt:  time.Now(),
+			}
+			responses = append(responses, response)
+		}
+
+		// save the student's responses to the database
+		saveResponses(responses)
+
+		// calculate the student's score and correct responses
+		correct := 0
+		for _, r := range responses {
+			if r.IsCorrect {
+				correct++
+			}
+		}
+		score := 100 * correct / len(responses)
+
+		// display the student's score and correct responses to the questions template
+		err = templates.ExecuteTemplate(w, "results.html", struct {
+			Score         int
+			CorrectCount  int
+			QuestionCount int
+			Responses     []Response
+		}{
+			Score:         score,
+			CorrectCount:  correct,
+			QuestionCount: len(questions),
+			Responses:     responses,
+		})
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func saveResponses(responses []Response) error {
+    db, err := sql.Open("postgres", dbConnStr)
+    if err != nil {
+        return err
+    }
+    defer db.Close()
+
+    for _, r := range responses {
+        _, err = db.Exec("INSERT INTO responses (question_id, student_id, answer, is_correct) VALUES ($1, $2, $3, $4)",
+            r.QuestionID, r.StudentID, r.Answer, r.IsCorrect)
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+
+func getTestResults(userID int) ([]TestResult, error) {
+    db, err := sql.Open("postgres", dbConnStr)
+    if err != nil {
+        return nil, err
+    }
+    defer db.Close()
+
+    rows, err := db.Query("SELECT id, user_id, subject_id, correct_answers, score FROM test_results WHERE user_id = $1", userID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var results []TestResult
+
+    for rows.Next() {
+        var tr TestResult
+        err := rows.Scan(&tr.ID, &tr.UserID, &tr.SubjectID, &tr.CorrectAnswers, &tr.Score)
+        if err != nil {
+            return nil, err
+        }
+        results = append(results, tr)
+    }
+
+    return results, nil
+}
+
+func renderTestResultsPage(w http.ResponseWriter, r *http.Request) {
+    session, err := store.Get(r, "session")
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    userID, ok := session.Values["user_id"].(int)
+    if !ok {
+        http.Error(w, "Invalid user ID", http.StatusBadRequest)
+        return
+    }
+
+    results, err := getTestResults(userID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Render the results page using the results data
+    // ...
+}
+
+//ends here
+//html starts here
+
+
+func insertedquestion(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		r.ParseForm()
+		question_prompt := r.FormValue("question_prompt")
+		option_a := r.FormValue("option_a")
+		option_b := r.FormValue("option_b")
+		option_c := r.FormValue("option_c")
+		option_d := r.FormValue("option_d")
+		correct_option := r.FormValue("correct_option")
+		created_by_name := r.FormValue("created_by")
+		topics_name := r.FormValue("topicsId")
+		//createdAt := r.FormValue("createdAt")
+
+		if question_prompt == "" || option_a == "" || option_b == "" || option_c == "" || option_d == "" || correct_option == "" || created_by_name == "" || topics_name == "" {
+			templates.ExecuteTemplate(w, "insertedquestion.html", "Error! Check to see that all fields have been completed")
+			return
+		}
+
+		// Get created_by_id from users table
+		var created_by_id int
+		err := db.QueryRow("SELECT user_id FROM users WHERE user_name = $1", created_by_name).Scan(&created_by_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Get topics_id from topics table
+		var topics_id int
+		err = db.QueryRow("SELECT topic_id FROM topics WHERE topic_name = $1", topics_name).Scan(&topics_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Insert new question with retrieved foreign key values
+		smt := `INSERT INTO questions (question_prompt, option_a, option_b, option_c, option_d, correct_option, created_by, topicsId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+		ins, err := db.Prepare(smt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		defer ins.Close()
+
+		res, err := ins.Exec(question_prompt, option_a, option_b, option_c, option_d, correct_option, created_by_id, topics_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		n, err := res.RowsAffected()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println(n)
+		http.Redirect(w, r, "/dashboard", 307)
+		return
+	}
+}
+
+
+stmt := `
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL,
+    order_date DATE NOT NULL,
+    CONSTRAINT fk_customer_id
+        FOREIGN KEY (customer_id)
+        REFERENCES customers (customer_id)
+        ON DELETE CASCADE
+);
+`
+_, err := db.Exec(stmt)
+if err != nil {
+    log.Fatal(err)
+}
+CREATE TABLE questions
+(
+  questions_id BIGSERIAL PRIMARY KEY,
+  question_prompt TEXT NOT NULL,
+  option_a VARCHAR(255) NOT NULL,
+  option_b VARCHAR(255) NOT NULL,
+  option_c VARCHAR(255) NOT NULL,
+  option_d VARCHAR(255) NOT NULL,
+  correct_option INT NOT NULL,
+  topicsId INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (topicsId) REFERENCES topics(topicsId)
+);
+
+func createOrder(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		r.ParseForm()
+
+		// Get form values
+		orderDate := r.FormValue("order_date")
+
+		// Prepare SQL statement
+		stmt := `INSERT INTO orders (order_date) VALUES ($1) RETURNING order_id`
+		var orderID int64
+		err := db.QueryRow(stmt, orderDate).Scan(&orderID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Send success response
+		response := fmt.Sprintf("Order created with ID %d", orderID)
+		w.Write([]byte(response))
+	}
+}
+
+func readOrder(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		// Get order ID from URL
+		orderID, err := strconv.Atoi(mux.Vars(r)["id"])
+		if err != nil {
+			http.Error(w, "Invalid order ID", http.StatusBadRequest)
+			return
+		}
+
+		// Prepare SQL statement
+		stmt := `SELECT o.customer_id, c.customer_name, o.order_date FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = $1`
+		var customerID int
+		var customerName string
+		var orderDate time.Time
+		err = db.QueryRow(stmt, orderID).Scan(&customerID, &customerName, &orderDate)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Order not found", http.StatusNotFound)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		// Send success response
+		response := fmt.Sprintf("Order ID: %d\nCustomer ID: %d\nCustomer Name: %s\nOrder date: %s", orderID, customerID, customerName, orderDate.Format("2006-01-02"))
+		w.Write([]byte(response))
+	}
+}
+
+
+func updateOrder(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPut {
+		// Get order ID from URL
+		orderID, err := strconv.Atoi(mux.Vars(r)["id"])
+		if err != nil {
+			http.Error(w, "Invalid order ID", http.StatusBadRequest)
+			return
+		}
+
+		// Get form values
+		orderDate := r.FormValue("order_date")
+
+		// Prepare SQL statement
+		stmt := `UPDATE orders SET order_date = $1 WHERE order_id = $2`
+		_, err = db.Exec(stmt, orderDate, orderID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Send success response
+		response := fmt.Sprintf("Order updated with ID %d", orderID)
+		w.Write([]byte(response))
+	}
+}

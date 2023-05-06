@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Answer Questions</title>
+</head>
+<body>
+	<h1>Answer Questions</h1>
+
+	<form method="POST" action="/answerquestions">
+		{{range $index, $question := .}}
+		<fieldset>
+			<legend>{{$question.QuestionPrompt}}</legend>
+			<label><input type="radio" name="question-{{$question.QuestionID}}" value="1"> {{$question.OptionA}}</label><br>
+			<label><input type="radio" name="question-{{$question.QuestionID}}" value="2"> {{$question.OptionB}}</label><br>
+			<label><input type="radio" name="question-{{$question.QuestionID}}" value="3"> {{$question.OptionC}}</label><br>
+			<label><input type="radio" name="question-{{$question.QuestionID}}" value="4"> {{$question.OptionD}}</label><br>
+		</fieldset>
+		{{end}}
+
+		<button type="submit">Submit</button>
+	</form>
+</body>
+</html>

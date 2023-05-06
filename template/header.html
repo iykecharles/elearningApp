@@ -1,0 +1,82 @@
+{{define "header"}}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
+        rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x"
+        crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css"
+        integrity="sha512-SiPifmgIK06QrF1IqEna2T1T9X9zn/UvysdW6LwdlGHeJOkhBpucYBcWsgs8m/c0HQ9Ct7ZweUGbWfle7/WBUw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-jc/PwOaO7V+dImd/G9tw7pKZJsczP0RJZMgfyBGrfQ/y0Yz+7eEC3Iqo8PQqrXrbjjC3q3/LK5a6l5U5IV5UOw=="
+        crossorigin="anonymous" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/fontawesome.min.css">
+
+    <title>E-learning Application</title>
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-dark text-light navbar-dark py-3 fixed-top position-absolute w-100">
+        <div class="container">
+            <a href="/" class="navbar-brand">Staff Data</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-collapse collapse" id="navmenu">
+                <ul class="navbar-nav ms-auto">
+                    {{if .Au}}
+                    <li class="nav-item">
+                        <a href="/datavault" class="nav-link">datavault</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">Logout</a>
+                    </li>
+                    {{else}}
+                    <li class="nav-item">
+                        <a href="/register" class="nav-link">SignUp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/login" class="nav-link">Login</a>
+                    </li>
+                    {{end}}
+                    <li class="nav-item">
+                        <a href="/ContactUs" class="nav-link">Contact Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <h2>Welcome {{.Username}}</h2>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="pb-3"></div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/js/bootstrap.min.js"></script>
+
+    <!-- Live server -->
+    <script src="http://localhost:35729/livereload.js"></script>
+    
+
+{{end}}
