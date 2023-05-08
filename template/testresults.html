@@ -1,37 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Results</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+	<title>Test Results</title>
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<style>
+		body {
+			background-color: white;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+		table {
+			margin: auto;
+			width: 80%;
+			border-collapse: separate;
+			border-spacing: 0;
+			border: 2px solid #ddd;
+		}
+		th, td {
+			text-align: left;
+			padding: 12px;
+			border-bottom: 1px solid #ddd;
+		}
+		tr:nth-child(even) {
+			background-color: #f2f2f2;
+		}
+	</style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Test Results</h1>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Question</th>
-                        <th>Your Answer</th>
-                        <th>Correct Answer</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{range .TestResults}}
-                    <tr>
-                        <td>{{.QuestionPrompt}}</td>
-                        <td>{{.Answer}}</td>
-                        <td>{{if .IsCorrect}}Yes{{else}}No{{end}}</td>
-                        <td>{{.Score}}</td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	<h1>Test Results</h1>
+	<table class="table table-bordered table-striped table-dark">
+		<thead>
+			<tr>
+				<th>Subject</th>
+				<th>Question</th>
+				<th>Answer</th>
+				<th>Is Correct</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range $index, $element := .TestResults}}
+			<tr>
+				<td>{{$element.Question.TopicsName}}</td>
+				<td>{{$element.Question.QuestionPrompt}}</td>
+				<td>{{$element.Response.Answer}}</td>
+				<td>{{$element.Response.IsCorrect}}</td>
+			</tr>
+			{{end}}
+		</tbody>
+	</table>
+	<!-- Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
 </html>

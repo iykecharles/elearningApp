@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 
 	"crypto/rand"
 	"encoding/base64"
@@ -62,6 +63,7 @@ type Response struct {
 	//StudentID  int                 removed
 	Answer    int
 	IsCorrect bool
+	UserID    int
 	CreatedAt time.Time
 }
 
@@ -112,18 +114,18 @@ func main() {
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/student", Auth(student))
 	//the questions part
-	http.HandleFunc("/insertquestion", Auth(insertquestion))
-	http.HandleFunc("/insertedquestion", Auth(insertedquestion))
-	http.HandleFunc("/question", Auth(question))
-	http.HandleFunc("/updatequestion", Auth(updatequestion))
-	http.HandleFunc("/deletequestion", Auth(deletequestion))
+	http.HandleFunc("/insertquestion", (insertquestion))
+	http.HandleFunc("/insertedquestion", (insertedquestion))
+	http.HandleFunc("/question", (question))
+	http.HandleFunc("/updatequestion", (updatequestion))
+	http.HandleFunc("/deletequestion", (deletequestion))
 	//student part
 	// Route to show all questions to student
-	http.HandleFunc("/viewquestions", Auth(viewquestions))
+	http.HandleFunc("/viewquestions", viewquestions)
 
 	// Route to answer the questions by student
 	http.HandleFunc("/answerquestions", (answerquestions))
-	http.HandleFunc("/testresults", Auth(testresults))
+	http.HandleFunc("/testresults", testresults)
 
 	//server
 	http.ListenAndServe("localhost:8080", nil)
@@ -310,27 +312,31 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 	var User_Id, hash string
 	smt := `SELECT User_Id, hash FROM users WHERE username = $1;`
 	row := db.QueryRow(smt, username)
-	//err := row.Scan(&User_Id)
 	err := row.Scan(&User_Id, &hash)
-	fmt.Println(err)
 	if err != nil {
-		fmt.Println(err)
 		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
 		return
 	}
-	fmt.Println("login halfway")
+
 	// check to see if hash of password exist in the database
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err == nil {
 		session, _ := store.New(r, "session")
-		session.Values["User_Id"] = User_Id
-		session.Save(r, w)
 
-		
+		// Set the User_Id value in the session
+		session.Values["User_Id"] = User_Id
+
 		// Generate a new session ID
 		sessionID := generateSessionID()
-		session.Options.MaxAge = 3600
-		fmt.Println("the session is", sessionID)
+
+		// Set the session cookie with the sessionID and User_Id values
+		cookie := &http.Cookie{
+			Name:    "session",
+			Value:   sessionID,
+			Path:    "/",
+			Expires: time.Now().Add(24 * time.Hour),
+		}
+		http.SetCookie(w, cookie)
 
 		// Insert a new row into the Sessions table
 		_, err = db.Exec("INSERT INTO Sessions (SessionID, User_Id) SELECT $1, User_Id FROM Users WHERE Username = $2", sessionID, username)
@@ -340,14 +346,62 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 		}
 
 		http.Redirect(w, r, "/index", http.StatusSeeOther)
-		// templates.ExecuteTemplate(w, "datavault.html", "Logged In") templates works perfectly
-		fmt.Println("login halfway 2")
 		return
 	}
-	fmt.Println(err)
 	templates.ExecuteTemplate(w, "login.html", "Confirm Username and/or Password")
-
 }
+
+// func loginAuthorization(w http.ResponseWriter, r *http.Request) {
+
+// 	username := r.FormValue("username")
+// 	password := r.FormValue("password")
+
+// 	if username == "" || password == "" {
+// 		templates.ExecuteTemplate(w, "login.html", "Ensure that you fill all the fields")
+// 		return
+// 	}
+
+// 	//check to see if username exist in database
+// 	var User_Id, hash string
+// 	smt := `SELECT User_Id, hash FROM users WHERE username = $1;`
+// 	row := db.QueryRow(smt, username)
+// 	//err := row.Scan(&User_Id)
+// 	err := row.Scan(&User_Id, &hash)
+// 	fmt.Println(err)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
+// 		return
+// 	}
+// 	fmt.Println("login halfway")
+// 	// check to see if hash of password exist in the database
+// 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+// 	if err == nil {
+// 		session, _ := store.New(r, "session")
+// 		session.Values["User_Id"] = User_Id
+// 		session.Save(r, w)
+
+// 		// Generate a new session ID
+// 		sessionID := generateSessionID()
+// 		session.Options.MaxAge = 3600
+// 		fmt.Println("the session is", sessionID)
+
+// 		// Insert a new row into the Sessions table
+// 		_, err = db.Exec("INSERT INTO Sessions (SessionID, User_Id) SELECT $1, User_Id FROM Users WHERE Username = $2", sessionID, username)
+// 		if err != nil {
+// 			fmt.Println(err.Error())
+// 			return
+// 		}
+
+// 		http.Redirect(w, r, "/index", http.StatusSeeOther)
+// 		// templates.ExecuteTemplate(w, "datavault.html", "Logged In") templates works perfectly
+// 		fmt.Println("login halfway 2")
+// 		return
+// 	}
+// 	fmt.Println(err)
+// 	templates.ExecuteTemplate(w, "login.html", "Confirm Username and/or Password")
+
+// }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
@@ -634,19 +688,18 @@ func deletequestion(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//real one
+// sunday real one
 func getUser(r *http.Request) *int {
-    cookie, err := r.Cookie("session")
-    if err != nil {
-        return nil
-    }
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		return nil
+	}
 
-    sessionID := cookie.Value
-    row := db.QueryRow("SELECT User_Id FROM Users WHERE Username = (SELECT Username FROM Sessions WHERE SessionID = $1)", sessionID)
-    //row := db.QueryRow("SELECT User_Id FROM Users WHERE Email = (SELECT Email FROM Sessions WHERE SessionID = $1)", sessionID)
-    var userID int
-    err = row.Scan(&userID)
-    if err != nil {
+	sessionID := cookie.Value
+	row := db.QueryRow("SELECT User_Id FROM Sessions WHERE SessionID = $1", sessionID)
+	var userID int
+	err = row.Scan(&userID)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			// handle "no rows in result set" error here
 			fmt.Println("No rows in result set")
@@ -657,9 +710,34 @@ func getUser(r *http.Request) *int {
 		return nil
 	}
 	fmt.Println("User ID:", userID)
-    return &userID
+	return &userID
 }
 
+// // real one
+// func getUser(r *http.Request) *int {
+// 	cookie, err := r.Cookie("session")
+// 	if err != nil {
+// 		return nil
+// 	}
+
+// 	sessionID := cookie.Value
+// 	row := db.QueryRow("SELECT User_Id FROM Users WHERE Username = (SELECT Username FROM Sessions WHERE SessionID = $1)", sessionID)
+// 	//row := db.QueryRow("SELECT User_Id FROM Users WHERE Email = (SELECT Email FROM Sessions WHERE SessionID = $1)", sessionID)
+// 	var userID int
+// 	err = row.Scan(&userID)
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			// handle "no rows in result set" error here
+// 			fmt.Println("No rows in result set")
+// 		} else {
+// 			// handle other errors here
+// 			fmt.Println("Error retrieving user ID:", err)
+// 		}
+// 		return nil
+// 	}
+// 	fmt.Println("User ID:", userID)
+// 	return &userID
+// }
 
 // student part
 // function to show all questions to student
@@ -807,19 +885,24 @@ func answerquestions(w http.ResponseWriter, r *http.Request) {
 		if option == correctOption {
 			isCorrect = true
 		}
-
+		//var UserID int
+		//UserID := *userID
 		responses = append(responses, Response{
 			QuestionID: int(questionID),
 			Answer:     int(option),
 			IsCorrect:  isCorrect,
+			UserID:     int(*userID),
 		})
 	}
 
 	for _, response := range responses {
-		_, err = db.Exec("INSERT INTO responses (answer, is_correct, questions_id) SELECT $1, $2, questions_id FROM questions WHERE questions_id = $3", response.Answer, response.IsCorrect, response.QuestionID)
+		//_, err = db.Exec("INSERT INTO responses (answer, is_correct, questions_id) SELECT $1, $2, questions_id FROM questions WHERE questions_id = $3", response.Answer, response.IsCorrect, response.QuestionID)
+		//_, err = db.Exec("INSERT INTO responses (answer, is_correct, questions_id, User_Id) SELECT $1, $2, questions_id FROM questions WHERE questions_id = $3, User_Id FROM Users WHERE User_Id = $4", response.Answer, response.IsCorrect, response.QuestionID, response.UserID)
+		_, err = db.Exec("INSERT INTO responses (answer, is_correct, questions_id, User_Id) SELECT $1, $2, q.questions_id, u.User_Id FROM questions q JOIN users u ON u.User_Id = $4 WHERE q.questions_id = $3", response.Answer, response.IsCorrect, response.QuestionID, response.UserID)
+
 		if err != nil {
 			fmt.Println("err 1 is ", err.Error())
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	}
 	fmt.Println("view answers completed succesfully")
@@ -833,13 +916,38 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
+	fmt.Println("got into testresults page")
 
+	// rows, err := db.Query(`
+	// SELECT questions.question_prompt, responses.answer, responses.is_correct, TestResults.score, TestResults.testdate
+	// FROM TestResults
+	// INNER JOIN questions ON TestResults.questions_id = questions.questions_id
+	// INNER JOIN responses ON TestResults.questions_id = questions.questions_id
+	// WHERE TestResults.User_Id = $1`, userID)
+
+	// rows, err := db.Query(`
+	// SELECT q.question_prompt, r.answer, r.is_correct, tr.score, tr.testdate
+	// FROM TestResults tr
+	// INNER JOIN Responses r ON tr.responses_id = r.responses_id
+	// INNER JOIN Questions q ON r.question_id = q.question_id
+	// WHERE tr.User_id = $1`, userID)
+
+	// rows, err := db.Query(`
+	// SELECT q.question_prompt, r.answer, r.is_correct, tr.score, tr.testdate
+	// FROM Responses r
+	// INNER JOIN TestResults tr ON r.responses_id = tr.responses_id
+	// INNER JOIN Questions q ON r.questions_id = q.questions_id
+	// WHERE tr.user_id = $1`, userID)
+
+	//lets try this
 	rows, err := db.Query(`
-	SELECT questions.question_prompt, responses.answer, responses.is_correct, TestResults.score, TestResults.testdate 
-	FROM TestResults 
-	INNER JOIN questions ON TestResults.questions_id = questions.questions_id 
-	INNER JOIN responses ON TestResults.questions_id = questions.questions_id 
-	WHERE TestResults.User_Id = $1`, userID)
+	SELECT questions.question_prompt, responses.answer, responses.is_correct, Users.User_id
+	FROM Users
+	INNER JOIN responses ON responses.User_id = Users.User_id
+	INNER JOIN questions ON responses.questions_id = questions.questions_id
+	WHERE Users.User_id = $1`, userID)
+
+	fmt.Println(rows)
 
 	if err != nil {
 		fmt.Println("error querying test results:", err.Error())
@@ -853,19 +961,21 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 		var questionPrompt string
 		var answer int
 		var isCorrect bool
-		var score int
-		var testdate time.Time
+		var User_id int
+		// var score int
+		// var testdate time.Time
 
-		err = rows.Scan(&questionPrompt, &answer, &isCorrect, &score, &testdate)
+		err = rows.Scan(&questionPrompt, &answer, &isCorrect, &User_id)
 		if err != nil {
 			fmt.Println("error scanning test result:", err.Error())
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
+		fmt.Println(questionPrompt, answer, isCorrect)
 		question := Question{QuestionPrompt: questionPrompt}
 		response := Response{Answer: answer, IsCorrect: isCorrect}
-		testResult := TestResult{Score: score, Testdate: testdate, Question: question, Response: response}
+		testResult := TestResult{Question: question, Response: response}
 
 		testResults = append(testResults, testResult)
 	}
@@ -875,5 +985,7 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 	}{
 		TestResults: testResults,
 	}
+	fmt.Println(data)
+	fmt.Println("successfully executed test results")
 	templates.ExecuteTemplate(w, "testresults.html", data)
 }

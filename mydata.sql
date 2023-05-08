@@ -211,8 +211,6 @@ CREATE TABLE questions
   correct_option INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 CREATE TABLE TestResults
 (
   TestResultsId BIGSERIAL PRIMARY KEY,
@@ -224,7 +222,6 @@ CURRENT_TIMESTAMP,
   FOREIGN KEY (User_Id) REFERENCES Users(User_Id),
   FOREIGN KEY (questions_id) REFERENCES questions(questions_id)
 );
-
 CREATE TABLE responses
 (
   responses_id BIGSERIAL PRIMARY KEY,
@@ -255,4 +252,26 @@ CREATE TABLE Sessions
   SessionID VARCHAR(100) PRIMARY KEY,
   User_Id INT NOT NULL,
   CONSTRAINT FK_UserID FOREIGN KEY (User_Id) REFERENCES Users(User_Id)
+);
+
+
+SELECT Users.Username, Users.Email, questions.question_prompt, responses.answer, responses.is_correct
+FROM Users
+INNER JOIN questions ON Users.User_id = questions.questions_id
+INNER JOIN responses ON questions.responses_id = responses.questions_id
+WHERE Users.User_id = $1;
+
+CREATE TABLE responses
+(
+  responses_id BIGSERIAL PRIMARY KEY,
+  questions_id INT NOT NULL,
+  answer INT NOT NULL,
+  User_Id INT
+  NOT NULL,
+  is_correct BOOLEAN NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT FK_questions_id FOREIGN KEY (questions_id) REFERENCES questions(questions_id),
+  CONSTRAINT FK_UserIDs FOREIGN KEY (User_Id) REFERENCES Users (User_Id)
+
+
 );

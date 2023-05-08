@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test Results</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" integrity="sha512-Q12aTtTJ68Y3DDW8dHfPRxzzRzG1Q2QnW7VvNo2Qquy7VchSXwWoPp8VvBNGmt1ERrVnOKbKpRs8DdIBKwh4Lg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<style>
+		body {
+			background-color: #343a40;
+			color: #fff;
+		}
+	</style>
+</head>
+<body>
+	<h1>Test Results</h1>
+	<table class="table table-dark">
+		<thead>
+			<tr>
+				<th scope="col">#</th>
+				<th scope="col">Question Prompt</th>
+				<th scope="col">Answer</th>
+				<th scope="col">Is Correct</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range $index, $element := .TestResults}}
+				<tr>
+					<th scope="row">{{$index}}</th>
+					<td>{{$element.Question.QuestionPrompt}}</td>
+					<td>{{$element.Response.Answer}}</td>
+					<td>{{$element.Response.IsCorrect}}</td>
+				</tr>
+			{{end}}
+		</tbody>
+	</table>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js" integrity="sha512-fzI8+x7wkpeNQ2u89oKnPbB6Zh/EN02iYFBlLyD6xEl+6rvwJh7jUQHJl+FAb8Jf0gVXtfh+f+0M/XcZ8Qz4GA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
