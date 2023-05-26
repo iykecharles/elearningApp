@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Testing</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<style>
+		
+	</style>
+</head>
+    <div class="pt-5 mx-5">
+        <h3>E-learning App Register testing</h3>
+    <table class="table table-bordered table-dark h4">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Test Case No</th>
+            <th scope="col">Task description</th>
+            <th scope="col">Task data</th>
+            <th scope="col">Expected Outcome</th>
+        
+            
+        </tr>
+        </thead>
+        <tbody class="text-danger h5">
+        
+            <tr class="text-success">
+                <th scope="row">1</th>
+                <td>Signing up with valid data</td>
+                <td>Username: useruser1, Password: SecretPass316$, Firstname: user1, Lastname: user1, Age: 33, Gender: Male, Email: secretpass316@yahoo.com</td>
+                <td>User Successfully registered in and redirected to the login page</td>
+            
+            </tr>
+            <tr class="text-primary">
+                <th scope="row"></th>
+                <td class="h2 text-white" colspan="3" style="text-align: center;">Possible Scenarios</td>
+                
+            
+            </tr>
+            <tr class="text-primary">
+                <th scope="row">1</th>
+                <td>Signing up with missing data in some fields</td>
+                <td>Username: useruser1, Password: SecretPass316$, Firstname: "Charles", Lastname: "", Age: 33, Gender: Male, Email:
+                    secretpass316@yahoo.com</td>
+                <td>Error notification : Please fill out this field</td>
+            
+            </tr>
+            <tr class="text-primary">
+                <th scope="row">2</th>
+                <td>Signing up with invalid email format</td>
+                <td>Username: useruser1, Password: SecretPass316$, Firstname: user1, Lastname: user1, Age: 33, Gender: Male, Email:
+                    secretpass316</td>
+                <td>Error notification : Please include an "@" in the email address. Input us missing an "@"</td>
+            
+            </tr>
+            <tr class="text-primary">
+                <th scope="row">3</th>
+                <td>Signing up with an already registered email address</td>
+                <td>Username: useruser1, Password: SecretPass316$, Firstname: user1, Lastname: user1, Age: 33, Gender: Male, Email:
+                    iykecharles316@yahoo.com</td>
+                <td>Error notification : The Username entered already exist</td>
+            
+            </tr>
+            <tr class="text-primary">
+                <th scope="row">4</th>
+                <td>Signing up with a weak password
+                </td>
+                <td>Username: useruser1, Password: secretpass, Firstname: user1, Lastname: user1, Age: 33, Gender: Male, Email:
+                iykecharles316@yahoo.com
+                </td>
+                <td>Error notification : Kindly check to see that your username and password meet criteria</td>
+            
+            </tr>
+        
+        
+        </tbody>
+    </table>
+    </div>
+    
+
+        <div class="pt-5 mx-5">
+            <h3>E-learning App Login testing</h3>
+            <table class="table table-bordered table-dark h5">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Test Case No</th>
+                        <th scope="col">Task description</th>
+                        <th scope="col">Task data</th>
+                        <th scope="col">Expected Outcome</th>
+                    </tr>
+                </thead>
+                <tbody class="text-danger h5">
+        
+                    <tr class="text-success">
+                        <th scope="row">2</th>
+                        <td>Loggin in with acceptable credentials</td>
+                        <td>Username: useruser1, Password: SecretPass316$</td>
+                        <td>User Successfully logged in and redirected to the Question page</td>
+        
+                    </tr>
+                    <tr class="text-primary">
+                        <th scope="row"></th>
+                        <td class="h2 text-white" colspan="3" style="text-align: center;">Possible Scenarios</td>
+                    
+                    
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">1</th>
+                        <td>Inputting an invalid username
+                        </td>
+                        <td>Username: user1, Password: SecretPass316$
+                        </td>
+                        <td>Error notification : Username not found in our database. Check username again or signup!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">2</th>
+                        <td>Inputting an invalid password
+                        </td>
+                        <td>Username: useruser1, Password: secretpass316$
+                        </td>
+                        <td>Error notification : Username not found in our database. Check username again or signup!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">3</th>
+                        <td>Not entering a value in the username field
+                        </td>
+                        <td>Username: "", Password: SecretPass316$
+                        </td>
+                        <td>Error notification : Ensure that you fill all the fields</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">4</th>
+                        <td>Not entering a value in the password field
+                        </td>
+                        <td>Username: useruser1, Password: ""
+                        </td>
+                        <td>Error notification : Ensure that you fill all the fields</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">5</th>
+                        <td>Not using a special character in the password field
+                        </td>
+                        <td>Username: useruser1, Password: SecretPass316
+                        </td>
+                        <td>Error notification : Confirm Username and/or Password</td>
+                    
+                    </tr>
+        
+        
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pt-5 mx-5">
+            <h3>E-learning App testing for creating question</h3>
+            <table class="table table-bordered table-dark h5">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Test Case No</th>
+                        <th scope="col">Task description</th>
+                        <th scope="col">Task data</th>
+                        <th scope="col">Expected Outcome</th>
+                    </tr>
+                </thead>
+                <tbody class="text-danger h5">
+        
+                    <tr class="text-success">
+                        <th scope="row">3</th>
+                        <td>Create a question under data analytics</td>
+                        <td>Question Prompt: the following are programming languages relevant in data mining. Option A: Python, Option B: Scala, Option C: Java, Option D : Spanish, Correct Option : 4</td>
+                        <td>Question created is displayed on the question page.</td>
+        
+                    </tr>
+                    <tr class="text-primary">
+                        <th scope="row"></th>
+                        <td class="h2 text-white" colspan="3" style="text-align: center;">Possible Scenarios</td>
+        
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">1</th>
+                        <td>leaves the Question Prompt field empty
+                        </td>
+                        <td>Question Prompt: "" Option A: Python, Option B: Scala,
+                            Option C: Java, Option D : Spanish, Correct Option : 4</td>
+
+                        </td>
+                        <td>Error notification : Error! Check to see that A QUESTION is entered!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">2</th>
+                        <td>leaves the Option A field empty
+                        </td>
+                        <td>Question Prompt: the following are programming languages relevant in data mining. Option A: "", Option B: Scala,
+                            Option C: Java, Option D : Spanish, Correct Option : 4</td>
+                        
+                        </td>
+                        <td>Error notification : Error! Check to see that Option A  is entered!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">3</th>
+                        <td>leaves the Option B field empty
+                        </td>
+                        <td>Question Prompt: the following are programming languages relevant in data mining. Option A: Python, Option B: "",
+                            Option C: Java, Option D : Spanish, Correct Option : 4</td>
+                        
+                        </td>
+                        <td>Error notification : Error! Check to see that Option B is entered!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">4</th>
+                        <td>leaves the Option C field empty
+                        </td>
+                        <td>Question Prompt: the following are programming languages relevant in data mining. Option A: Python, Option B: Scala,
+                            Option C: "", Option D : Spanish, Correct Option : 4</td>
+                        
+                        </td>
+                        <td>Error notification : Error! Check to see that Option C is entered!</td>
+        
+                    </tr>
+                    <tr class="text-warning">
+                        <th scope="row">5</th>
+                        <td>leaves the Option D field empty
+                        </td>
+                        <td>Question Prompt: the following are programming languages relevant in data mining. Option A: Python, Option B: Scala,
+                            Option C: Java, Option D : "", Correct Option : 4</td>
+                        
+                        </td>
+                        <td>Error notification : Error! Check to see that Option D is entered!</td
+        
+                    </tr>
+        
+        
+                </tbody>
+            </table>
+        </div>
+        <div class="mx-5 px-lg-5 ">
+        <h3>Instructions to Participants</h3>
+        <p>Instructions to Participants. 
+I am very grateful for your time set out to take part in this exercise. 
+This study is necessary to test the e-learning web application which I built for my MSc project title "develop an e-learning web application with Golang and PostgreSQL". To get a glimpse of what to do, I have prepared some tasks for you to perform. Also, attached are the instructions to be followed to accomplish the tasks. 
+
+While you attempt the tasks, I would be monitoring via video call. I would ask that you think aloud to help me understand what you're thinking. It would help understand the parts that are difficult to accomplish which I  need to improve. 
+Lastly, this test is not meant to test your ability or intelligence but to test how easy the features of the apps would be to use. 
+Relax and take your time . 
+Tasks and scenarios given to the E-learning testing participants
+Task 1. As a new user, register with your credentials on the e-learning web application. 
+Task scenario: You want to acquire a new skill in one of the most sought-after technology courses which we offer to only registered users on our web application.
+Task 2. Login into the e-learning web application.
+Task scenario: You are about to take a course in the e-learning web application and need to be authenticated so that a TestResult can be provided at the end of your test.
+
+Task 3. Create a question that would be answered by the students.
+You want to add some important questions and update some other existing questions under the data analytics section of the e-learning web application.
+</p>
+</div>
+</body>
+
+</html>

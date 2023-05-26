@@ -1,10 +1,57 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
+
 <head>
-	<title>Answer Questions</title>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" href="static/style.css">
+	<title>E-learning Application</title>
 </head>
+
 <body>
-	<h1>Answer Questions</h1>
+<!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-dark text-light navbar-dark py-3 fixed-top position-absolute w-100 mb-5">
+        <div class="container">
+            <a href="/" class="navbar-brand">Home</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-collapse collapse" id="navmenu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+						<a href="/profile" class="nav-link">Profile</a>
+					</li>
+                    <li class="nav-item">
+                        <a href="/index" class="nav-link">view courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/checkresult" class="nav-link">check Result</a>
+                    </li>
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+    </nav>
+	<div class="mt-5">.</div>
+<h1>
+	<title>Answer Questions</title>
+</h1>
+<div class="mx-5 my-5">
+	<h3>Answer Questions</h3>
 
 	<form method="POST" action="/answerquestions">
 		{{range $index, $question := .}}
@@ -17,7 +64,8 @@
 		</fieldset>
 		{{end}}
 
-		<button type="submit">Submit</button>
+		<button class="btn-primary btn-lg my-3" type="submit">Submit</button>
 	</form>
+</div>
 </body>
 </html>

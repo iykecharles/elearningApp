@@ -1,44 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Test Results</title>
-	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-	<style>
-		body {
-			background-color: white;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-		}
-		table {
-			margin: auto;
-			width: 80%;
-			border-collapse: separate;
-			border-spacing: 0;
-			border: 2px solid #ddd;
-		}
-		th, td {
-			text-align: left;
-			padding: 12px;
-			border-bottom: 1px solid #ddd;
-		}
-		tr:nth-child(even) {
-			background-color: #f2f2f2;
-		}
-	</style>
-</head>
-<body>
-	<h1>Test Results</h1>
-	<table class="table table-bordered table-striped table-dark">
+{{template "header"}}
+<div class="my-5">
+	<h4>Test Results</h4>
+	<div class="percentage text-center btn-success">
+		Percentage: {{.Percentage}}%
+	</div>
+	<table class="table table-bordered table-dark">
 		<thead>
 			<tr>
 				<th>Subject</th>
 				<th>Question</th>
 				<th>Answer</th>
 				<th>Is Correct</th>
+				
 			</tr>
 		</thead>
 		<tbody>
@@ -48,6 +21,7 @@
 				<td>{{$element.Question.QuestionPrompt}}</td>
 				<td>{{$element.Response.Answer}}</td>
 				<td>{{$element.Response.IsCorrect}}</td>
+				
 			</tr>
 			{{end}}
 		</tbody>
@@ -56,5 +30,4 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-</body>
-</html>
+</div>

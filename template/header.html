@@ -34,7 +34,7 @@
     <!-- navbar -->
     <nav class="navbar navbar-expand-md bg-dark text-light navbar-dark py-3 fixed-top position-absolute w-100">
         <div class="container">
-            <a href="/" class="navbar-brand">Staff Data</a>
+            <a href="/" class="navbar-brand">Home</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
                 <span class="navbar-toggler-icon"></span>
@@ -44,7 +44,7 @@
                 <ul class="navbar-nav ms-auto">
                     {{if .Au}}
                     <li class="nav-item">
-                        <a href="/datavault" class="nav-link">datavault</a>
+                        <a href="/profile" class="nav-link">Profile</a>
                     </li>
                     <li class="nav-item">
                         <a href="/logout" class="nav-link">Logout</a>
@@ -56,13 +56,15 @@
                     <li class="nav-item">
                         <a href="/login" class="nav-link">Login</a>
                     </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/checkresult" class="nav-link">check Result</a>
+                    </li>
                     {{end}}
-                    <li class="nav-item">
-                        <a href="/ContactUs" class="nav-link">Contact Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <h2>Welcome {{.Username}}</h2>
-                    </li>
+                    
+                    
                 </ul>
             </div>
         </div>

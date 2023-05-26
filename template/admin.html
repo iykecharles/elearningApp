@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" href="static/style.css">
+	<title>E-learning Application</title>
+</head>
+
+<body>
+  <!-- navbar -->
+	<nav class="navbar navbar-expand-lg bg-dark text-light navbar-dark py-3 fixed-top">
+    <div class="container">
+      <a href="#" class="navbar-brand">Admin, welcome!</a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="navbar navbar-collapse" id="navmenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a href="/home" class="nav-link">Home</a>
+          </li>
+          <li class="nav-item">
+            <a href="#Ourcourses" class="nav-link">Our Courses</a>
+          </li>
+          <li class="nav-item">
+            <a href="/profile" class="nav-link">Profile</a>
+          </li>
+          <li class="nav-item">
+            <a href="/logout" class="nav-link">Logout</a>
+          </li>
+          <li class="nav-item">
+            <a href="/checkresult" class="nav-link">Check Result</a>
+          </li>
+          <li class="nav-item">
+            <a href="/insertquestion" class="nav-link">Create Course</a>
+          </li>
+          <li class="nav-item">
+            <a href="/question" class="nav-link">Question Dashboard</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- showcase -->
+
+  <section class="bg-dark p-5 text-light text-center text-sm-start">
+    <div class="container p-5">
+      <div class="d-sm-flex p-5 align-items-center justify-content-between">
+        <div>
+          <h1>
+            Want to develop yourself by taking <span class="text-primary">Top Technology Courses?</span>
+            <p class="lead py-4">
+              Upskill for career advancement with the convenience and flexibility of our  e-learning application .  Why wait! Start your journey today.  You have to sign up and login to be able to navigate thru all the pages in this website. Do enjoy Yourself.
+            </p>
+            <a href="#Ourcourses">
+              <button class="btn btn-primary btn-lg text-capitalize">
+                Okay, Let's Go!
+              </button>
+            </a>
+          </h1>
+        </div>
+        <img class="img-fluid w-50" src="img/bussiness-man.png" alt="">
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- staff boxes-->
+  <section class="text-light p-4" id="Ourcourses">
+    <div class="container">
+      <div class="row text-center g-5">
+        <div class="p-3 text-dark">
+          <h1 class="pt-3">Our Top Tech Courses</h1>
+          <p>All our tutors are certified and have over 10 years of experience in these fields</p>
+        </div>
+        <div class="col-md">
+          <div class="card bg-dark text-light">
+            <div class="card-body">
+              <img class="card-img" src="/img/bussiness-man.png" alt="">
+              <div class="card-title">
+                <a href="/computer-science/questions" class="button">Computer Science</a>
+              </div>
+              
+              <p>Servers, databases, networking, storage in the Cloud</p>
+
+            </div>
+          </div>
+        </div>
+        <div class="col-md">
+          <div class="card bg-dark text-light">
+            <div class="card-body">
+              <img class="card-img" src="/img/man.png" alt="">
+              <div class="card-title">
+                <a href="/data-analytics/questions">Data Analytics</a>
+              </div>
+              <p>Data mining, predictive analytics, and machine learning. </p>
+        
+            </div>
+          </div>
+        </div>
+        <div class="col-md">
+          <div class="card bg-dark text-light">
+            <div class="card-body">
+              <img class="card-img" src="/img/woman (1).png" alt="">
+              <div class="card-title">
+                <a href="/artificial-intelligence/questions" class="button">Artificial Intelligence</a>
+              </div>
+              <p> Natural language processing, image and speech recognition, fraud detection, and recommendation systems</p>
+
+        
+            </div>
+          </div>
+        </div>
+        <div class="col-md">
+          <div class="card bg-dark text-light">
+            <div class="card-body">
+              <img class="card-img" src="/img/woman (1).png" alt="">
+              <div class="card-title">
+                <a href="/coding/questions" class="button">Coding</a>
+              </div>
+              <p>Design, development, testing, deployment, and Software Maintenance</p>
+        
+        
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- staff -->
+
+  <!-- newsletter -->
+  <section class="bg-primary text-light p-5">
+    <div>
+      <div class="container">
+        <div class="d-sm-flex text-dark align-items-center justify-content-between">
+          <h3 class="py-4">SignUp For Our Newsletter</h3>
+          <div class="input-group mb-3 w-sm-50  formss">
+            <input type="text" class="form-control" placeholder="Enter Email" aria-label="Recipient's username"
+              aria-describedby="button-addon2">
+            <button class="btn btn-lg btn-dark" type="button" id="button-addon2">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- newsletter -->
+
+
+  <!-- footnote -->
+
+  <footer class="bg-dark p-5 text-center position-relative text-light">
+    <div class="container">
+      <a href="" class="position-absolute bottom-0 end-0 h1">
+        <i class="bi bi-arrow-up-circle h1"></i>
+      </a>
+      <p class="lead">
+        Copyright &copy; E-learningApp
+      </p>
+    </div>
+  </footer>
+
+
+  <!-- footnote -->
+
+
+
+
+
+
+	<!-- Option 1: Bootstrap Bundle with Popper -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+		crossorigin="anonymous"></script>
+
+	
+</body>
+
+</html>

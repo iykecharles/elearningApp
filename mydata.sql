@@ -275,3 +275,15 @@ CREATE TABLE responses
 
 
 );
+
+CREATE TABLE TestResult
+(
+  TestResultsId BIGSERIAL PRIMARY KEY,
+  User_Id INT NOT NULL,
+  Score INT NOT NULL,
+  testdate TIMESTAMP
+DEFAULT
+CURRENT_TIMESTAMP,
+  FOREIGN KEY (User_Id) REFERENCES Users(User_Id),
+  
+);

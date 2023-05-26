@@ -94,17 +94,18 @@ var err error
 //var store = sessions.NewCookieStore([]byte("msc-project"))
 
 func main() {
-	fmt.Println("initailizing the PostgreSQL database.....")
+	fmt.Println("initailizing the Msc Project PostgreSQL database.....")
 	db, err = sql.Open("postgres", "user=postgres password=charles dbname=elearning host=localhost port=5432 sslmode=disable")
 	if err != nil {
 		fmt.Println("Error connecting to the PostgreSQL database:", err.Error())
 		return
 	}
-	fmt.Println("PostgreSQL database seems okay")
+	fmt.Println("The Msc Project PostgreSQL database seems okay")
 	defer db.Close()
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.HandleFunc("/", home)
 	http.HandleFunc("/index", index)
 	http.HandleFunc("/register", register)
@@ -127,6 +128,16 @@ func main() {
 	http.HandleFunc("/answerquestions", (answerquestions))
 	http.HandleFunc("/testresults", testresults)
 
+	//get by topic name
+	http.HandleFunc("/computer-science/questions", viewComputerScienceQuestions)
+	http.HandleFunc("/artificial-intelligence/questions", viewArtificialIntelligenceQuestions)
+	http.HandleFunc("/data-analytics/questions", viewDataAnalyticsQuestions)
+	http.HandleFunc("/coding/questions", viewCodingQuestions)
+	http.HandleFunc("/profile", profile)
+	http.HandleFunc("/admin", admin)
+	http.HandleFunc("/checkresult", checkresult)
+	http.HandleFunc("/viewresult", viewresult)
+
 	//server
 	http.ListenAndServe("localhost:8080", nil)
 	//http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
@@ -144,8 +155,77 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func admin(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "admin.html", nil)
+
+}
+
+func GetUserByID(id int) (*Users, error) {
+	// Run a query to retrieve the user data
+	query := "SELECT User_Id, Username, FirstName, LastName, Gender, Email, Age, UserType FROM Users WHERE User_Id = $1"
+	row := db.QueryRow(query, id)
+
+	// Parse the query results into a User struct
+	user := &Users{}
+	err = row.Scan(&user.User_Id, &user.Username, &user.FirstName, &user.LastName, &user.Gender, &user.Email, &user.Age, &user.UserType)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func UpdateUser(user *Users) error {
+	// Create update query
+	query := "UPDATE Users SET Username = $1, FirstName = $2, LastName = $3, Gender = $4, Email = $5, Age = $6 WHERE User_Id = $7"
+
+	// Execute the query
+	_, err := db.Exec(query, user.Username, user.FirstName, user.LastName, user.Gender, user.Email, user.Age, user.User_Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func profile(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, err := GetUserByID(*userID)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	//j := Users{}
+	templates.ExecuteTemplate(w, "profile.html", user)
+
+}
+
+func alreadyLoggedIn(w http.ResponseWriter, r *http.Request) bool {
+	// Check if the user is already logged in by looking for a cookie with the user ID
+	cookie, err := r.Cookie("userid")
+	if err == nil {
+		// If the cookie exists, check if the user ID is valid
+		userID, err := strconv.Atoi(cookie.Value)
+		if err == nil && userID > 0 {
+			// If the user ID is valid, the user is already logged in
+			return true
+		}
+	}
+	// If the cookie doesn't exist or the user ID is not valid, the user is not logged in
+	return false
+}
+
 // register serves form for registring new users
 func register(w http.ResponseWriter, r *http.Request) {
+	if alreadyLoggedIn(w, r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	templates.ExecuteTemplate(w, "register.html", nil)
 
 }
@@ -224,12 +304,12 @@ func registerAuthorization(w http.ResponseWriter, r *http.Request) {
 	if 8 < len(password) && len(password) < 64 {
 		passwordLenght = true
 	}
-	/*
-		if !passwordLowerC || !passwordUpperC || !passwordNumber || !passwordSpecial || !passwordLenght || !passwordNoSpaces || !usernameAlphanum || !usernameLength {
-			templates.ExecuteTemplate(w, "register.html", "Kindly check to see that your username and password meet criteria")
-			return
-		}
-	*/
+
+	if !passwordLowerC || !passwordUpperC || !passwordNumber || !passwordSpecial || !passwordLenght || !passwordNoSpaces || !usernameAlphanum || !usernameLength {
+		templates.ExecuteTemplate(w, "register.html", "Kindly check to see that your username and password meet criteria")
+		return
+	}
+
 	if username == "" || firstname == "" || lastname == "" || agestr == "" || password == "" || gender == "" || email == "" {
 		templates.ExecuteTemplate(w, "register.html", "Ensure that you fill all the fields")
 		return
@@ -242,6 +322,17 @@ func registerAuthorization(w http.ResponseWriter, r *http.Request) {
 	err = row.Scan(&User_Id)
 	if err != sql.ErrNoRows {
 		templates.ExecuteTemplate(w, "register.html", "The Username entered already exist")
+		fmt.Println(err)
+		return
+	}
+
+	// check to see if email exists in the database
+	emt := "SELECT User_Id FROM users WHERE email = $1"
+	row1 := db.QueryRow(emt, email)
+	var Emmmm string
+	err = row1.Scan(&Emmmm)
+	if err != sql.ErrNoRows {
+		templates.ExecuteTemplate(w, "register.html", "Email already exist!")
 		fmt.Println(err)
 		return
 	}
@@ -293,6 +384,15 @@ func generateSessionID() string {
 	return base64.StdEncoding.EncodeToString(bytes)
 }
 
+func getUserRole(username string) string {
+	var usertype string
+	err := db.QueryRow("SELECT usertype FROM users WHERE username = $1", username).Scan(&usertype)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return usertype
+}
+
 func login(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "login.html", nil)
 
@@ -304,9 +404,19 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	if username == "" || password == "" {
-		templates.ExecuteTemplate(w, "login.html", "Ensure that you fill all the fields")
+		templates.ExecuteTemplate(w, "login.html", "Please fill out this field")
 		return
 	}
+
+	// //convert to switch
+	// switch {
+	// case username == "":
+	// 	templates.ExecuteTemplate(w, "login.html", "Ensure that you fill username field")
+	// 	return
+	// case password == "":
+	// 	templates.ExecuteTemplate(w, "login.html", "Ensure that you fill password field")
+	// 	return
+	// }
 
 	//check to see if username exist in database
 	var User_Id, hash string
@@ -314,7 +424,7 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 	row := db.QueryRow(smt, username)
 	err := row.Scan(&User_Id, &hash)
 	if err != nil {
-		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
+		templates.ExecuteTemplate(w, "login.html", "Username not found in our database. Check username again or signup!")
 		return
 	}
 
@@ -345,63 +455,21 @@ func loginAuthorization(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Redirect(w, r, "/index", http.StatusSeeOther)
-		return
+		usertype := getUserRole(username)
+
+		if usertype == "admin" {
+			http.Redirect(w, r, "/admin", http.StatusSeeOther)
+			return
+		} else {
+			http.Redirect(w, r, "/index", http.StatusSeeOther)
+			return
+		}
+
+		// http.Redirect(w, r, "/index", http.StatusSeeOther)
+		// return
 	}
 	templates.ExecuteTemplate(w, "login.html", "Confirm Username and/or Password")
 }
-
-// func loginAuthorization(w http.ResponseWriter, r *http.Request) {
-
-// 	username := r.FormValue("username")
-// 	password := r.FormValue("password")
-
-// 	if username == "" || password == "" {
-// 		templates.ExecuteTemplate(w, "login.html", "Ensure that you fill all the fields")
-// 		return
-// 	}
-
-// 	//check to see if username exist in database
-// 	var User_Id, hash string
-// 	smt := `SELECT User_Id, hash FROM users WHERE username = $1;`
-// 	row := db.QueryRow(smt, username)
-// 	//err := row.Scan(&User_Id)
-// 	err := row.Scan(&User_Id, &hash)
-// 	fmt.Println(err)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		templates.ExecuteTemplate(w, "login.html", "Sorry! Username not found in our database. Do signup!")
-// 		return
-// 	}
-// 	fmt.Println("login halfway")
-// 	// check to see if hash of password exist in the database
-// 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-// 	if err == nil {
-// 		session, _ := store.New(r, "session")
-// 		session.Values["User_Id"] = User_Id
-// 		session.Save(r, w)
-
-// 		// Generate a new session ID
-// 		sessionID := generateSessionID()
-// 		session.Options.MaxAge = 3600
-// 		fmt.Println("the session is", sessionID)
-
-// 		// Insert a new row into the Sessions table
-// 		_, err = db.Exec("INSERT INTO Sessions (SessionID, User_Id) SELECT $1, User_Id FROM Users WHERE Username = $2", sessionID, username)
-// 		if err != nil {
-// 			fmt.Println(err.Error())
-// 			return
-// 		}
-
-// 		http.Redirect(w, r, "/index", http.StatusSeeOther)
-// 		// templates.ExecuteTemplate(w, "datavault.html", "Logged In") templates works perfectly
-// 		fmt.Println("login halfway 2")
-// 		return
-// 	}
-// 	fmt.Println(err)
-// 	templates.ExecuteTemplate(w, "login.html", "Confirm Username and/or Password")
-
-// }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
@@ -515,8 +583,37 @@ func calculateTestResults(studentID int) (int, int, error) {
 	return correctAnswers, score, nil
 }
 
+func alreadyLoggedIn1(w http.ResponseWriter, r *http.Request) bool {
+	// Check if the user is already logged in by looking for a cookie with the user ID
+	cookie, err := r.Cookie("userid")
+	if err == nil {
+		// If the cookie exists, check if the user ID is valid
+		userID, err := strconv.Atoi(cookie.Value)
+		if err == nil && userID > 0 {
+			// If the user ID is valid, the user is already logged in
+			return true
+		}
+	}
+	// If the cookie doesn't exist or the user ID is not valid, the user is not logged in
+	return false
+}
+
 // Questions set by admin
 func insertquestion(w http.ResponseWriter, r *http.Request) {
+	// userID := getUser(r)
+	// admin := 1
+	// if userID != &admin {
+	// 	fmt.Println("User isn't admin. Access denied")
+	// 	http.Error(w, "Access denied. You must be the admin to access this information", http.StatusForbidden)
+	// 	return
+	// }
+
+	usertype := r.FormValue("usertype")
+	if usertype == "student" {
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+		return
+	}
+
 	templates.ExecuteTemplate(w, "insertquestion.html", nil)
 }
 
@@ -532,9 +629,34 @@ func insertedquestion(w http.ResponseWriter, r *http.Request) {
 		correct_option := r.FormValue("correct_option")
 		//created_at := r.FormValue("created_at")
 
-		if topicsName == "" || question_prompt == "" || option_a == "" || option_b == "" || option_c == "" || option_d == "" || correct_option == "" {
-			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that all fields have been completed")
-			fmt.Println("1 is ", err.Error())
+		// if topicsName == "" || question_prompt == "" || option_a == "" || option_b == "" || option_c == "" || option_d == "" || correct_option == "" {
+		// 	templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that all fields have been completed")
+		// 	fmt.Println("1 is ", err.Error())
+		// 	return
+		// }
+
+		//switch statement on inserting question
+		switch {
+		case topicsName == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that a topic name is entered")
+			return
+		case question_prompt == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that A QUESTION is entered")
+			return
+		case option_a == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that option A is entered")
+			return
+		case option_b == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that option B is entered")
+			return
+		case option_c == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that option C is entered")
+			return
+		case option_d == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that option D is entered")
+			return
+		case correct_option == "":
+			templates.ExecuteTemplate(w, "insertedtopic.html", "Error! Check to see that the correct option is entered")
 			return
 		}
 
@@ -662,27 +784,44 @@ func deletequestion(w http.ResponseWriter, r *http.Request) {
 	}
 	questions_id, err := strconv.ParseInt(questionIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid topicsId value", http.StatusBadRequest)
+		http.Error(w, "Invalid Id value", http.StatusBadRequest)
 		return
 	}
-	del := `DELETE FROM questions WHERE questions_id = $1;`
-	smt, err := db.Prepare(del)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer smt.Close()
 
-	res, err := smt.Exec(questions_id)
+	// Delete responses associated with the question
+	delResponses := `DELETE FROM responses WHERE questions_id = $1;`
+	_, err = db.Exec(delResponses, questions_id)
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, "Error deleting responses: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	n, err := res.RowsAffected()
+	// Delete the question
+	delQuestion := `DELETE FROM questions WHERE questions_id = $1;`
+	_, err = db.Exec(delQuestion, questions_id)
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, "Error deleting question: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	fmt.Println(n, "Deleted")
+	// del := `DELETE FROM questions WHERE questions_id = $1;`
+	// smt, err := db.Prepare(del)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// defer smt.Close()
+
+	// res, err := smt.Exec(questions_id)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+
+	// n, err := res.RowsAffected()
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+
+	//fmt.Println(n, "Deleted")
 	http.Redirect(w, r, "/question", 307)
 	return
 
@@ -713,31 +852,9 @@ func getUser(r *http.Request) *int {
 	return &userID
 }
 
-// // real one
-// func getUser(r *http.Request) *int {
-// 	cookie, err := r.Cookie("session")
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	sessionID := cookie.Value
-// 	row := db.QueryRow("SELECT User_Id FROM Users WHERE Username = (SELECT Username FROM Sessions WHERE SessionID = $1)", sessionID)
-// 	//row := db.QueryRow("SELECT User_Id FROM Users WHERE Email = (SELECT Email FROM Sessions WHERE SessionID = $1)", sessionID)
-// 	var userID int
-// 	err = row.Scan(&userID)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			// handle "no rows in result set" error here
-// 			fmt.Println("No rows in result set")
-// 		} else {
-// 			// handle other errors here
-// 			fmt.Println("Error retrieving user ID:", err)
-// 		}
-// 		return nil
-// 	}
-// 	fmt.Println("User ID:", userID)
-// 	return &userID
-// }
+var fm = template.FuncMap{
+	"Au": getUser,
+}
 
 // student part
 // function to show all questions to student
@@ -770,43 +887,6 @@ func viewquestions(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "viewquestions.html", questions)
 }
 
-// func getUser(r *http.Request) Users {
-
-// 	c, err := r.Cookie("charlescookie")
-// 	if err != nil {
-// 		id, _ := uuid.NewV4()
-// 		c = &http.Cookie{
-// 			Name:  "charlescookie",
-// 			Value: id.String(),
-// 			Path:  "/",
-// 		}
-
-// 	}
-
-// 	var u Users
-// 	if un, ok := dbSession[c.Value]; ok {
-// 		u = dbUser[un]
-// 	}
-// 	return u
-// }
-
-// func getUser(r *http.Request) *int {
-// 	cookie, err := r.Cookie("session")
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	sessionID := cookie.Value
-// 	row := db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", sessionID)
-// 	var userID int
-// 	err = row.Scan(&userID)
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	return &userID
-// }
-
 // // cool but issues
 func Alreadyloggedin(r *http.Request) (int, error) {
 	c, err := r.Cookie("charlescookie")
@@ -824,19 +904,6 @@ func Alreadyloggedin(r *http.Request) (int, error) {
 	}
 	return 0, nil
 }
-
-// func Alreadyloggedin(r *http.Request) int {
-// 	c, err := r.Cookie("charlescookie")
-// 	if err != nil {
-// 		return 0
-// 	}
-// 	un := dbSession[c.Value]
-// 	_, ok := dbUser[un]
-// 	if ok {
-// 		return 1
-// 	}
-// 	return 0
-// }
 
 func answerquestions(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
@@ -918,36 +985,26 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("got into testresults page")
 
-	// rows, err := db.Query(`
-	// SELECT questions.question_prompt, responses.answer, responses.is_correct, TestResults.score, TestResults.testdate
-	// FROM TestResults
-	// INNER JOIN questions ON TestResults.questions_id = questions.questions_id
-	// INNER JOIN responses ON TestResults.questions_id = questions.questions_id
-	// WHERE TestResults.User_Id = $1`, userID)
-
-	// rows, err := db.Query(`
-	// SELECT q.question_prompt, r.answer, r.is_correct, tr.score, tr.testdate
-	// FROM TestResults tr
-	// INNER JOIN Responses r ON tr.responses_id = r.responses_id
-	// INNER JOIN Questions q ON r.question_id = q.question_id
-	// WHERE tr.User_id = $1`, userID)
-
-	// rows, err := db.Query(`
-	// SELECT q.question_prompt, r.answer, r.is_correct, tr.score, tr.testdate
-	// FROM Responses r
-	// INNER JOIN TestResults tr ON r.responses_id = tr.responses_id
-	// INNER JOIN Questions q ON r.questions_id = q.questions_id
-	// WHERE tr.user_id = $1`, userID)
-
 	//lets try this
 	rows, err := db.Query(`
 	SELECT questions.question_prompt, responses.answer, responses.is_correct, Users.User_id
 	FROM Users
 	INNER JOIN responses ON responses.User_id = Users.User_id
 	INNER JOIN questions ON responses.questions_id = questions.questions_id
-	WHERE Users.User_id = $1`, userID)
+	LEFT JOIN TestResults ON responses.User_id = TestResults.User_id AND responses.questions_id = TestResults.questions_id
+	WHERE Users.User_id = $1 AND DATE(responses.created_at) = CURRENT_DATE AND questions.topicsName = (
+		SELECT topicsName 
+		FROM questions 
+		WHERE questions.questions_id = (
+			SELECT responses.questions_id 
+			FROM responses 
+			WHERE responses.User_id = Users.User_id 
+			ORDER BY responses.created_at DESC 
+			LIMIT 1
+		)
+	)`, userID)
 
-	fmt.Println(rows)
+	fmt.Println("rows:", rows)
 
 	if err != nil {
 		fmt.Println("error querying test results:", err.Error())
@@ -956,21 +1013,40 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
+	score := 0
+	sumOfQuestions := 0
 	testResults := []TestResult{}
 	for rows.Next() {
 		var questionPrompt string
 		var answer int
 		var isCorrect bool
+		//var scores sql.NullInt64
 		var User_id int
-		// var score int
 		// var testdate time.Time
 
 		err = rows.Scan(&questionPrompt, &answer, &isCorrect, &User_id)
+
+		//testResults = append(testResults, TestResult{questionPrompt, answer, isCorrect, User_id})
 		if err != nil {
 			fmt.Println("error scanning test result:", err.Error())
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Println("Question:", questionPrompt)
+		fmt.Println("Answer:", answer)
+		fmt.Println("IsCorrect:", isCorrect)
+		//fmt.Println("Scores Valid:", scores.Valid)
+
+		// if scores.Valid{
+		// 	score += int(scores.Int64)
+		// 	sumOfQuestions++
+		// }
+
+		if isCorrect {
+			score++
+		}
+		sumOfQuestions++
 
 		fmt.Println(questionPrompt, answer, isCorrect)
 		question := Question{QuestionPrompt: questionPrompt}
@@ -979,13 +1055,257 @@ func testresults(w http.ResponseWriter, r *http.Request) {
 
 		testResults = append(testResults, testResult)
 	}
+	// to calculate the percentage of the right answers
+	var percentage float64
+	if sumOfQuestions > 0 {
+		percentage = (float64(score) / float64(sumOfQuestions)) * 100
+		fmt.Println("percentage is ", percentage)
+	} else {
+		fmt.Println("questions dont exist")
+	}
+	//percentage := ((float64(score)  / float64(sumOfQuestions)) * 100)
 
 	data := struct {
 		TestResults []TestResult
+		Score       int
+		Percentage  float64
 	}{
 		TestResults: testResults,
+		Score:       score,
+		Percentage:  percentage,
 	}
-	fmt.Println(data)
+	//fmt.Println(data)     delete later
 	fmt.Println("successfully executed test results")
+
+	//inserting testresult into the testresults database
+	//	_, err = db.Exec("INSERT INTO responses (answer, is_correct, questions_id, User_Id) SELECT $1, $2, q.questions_id, u.User_Id FROM questions q JOIN users u ON u.User_Id = $4 WHERE q.questions_id = $3", response.Answer, response.IsCorrect, response.QuestionID, response.UserID)
+	// var test []TestResult
+	// _, err = db.Exec("INSERT INTO TestResults (Score, User_Id, questions_id) SELECT $1, u.User_Id, q.questions_id FROM questions q JOIN users u ON u.User_Id = $2 WHERE q.questions_id = $3",)
+	
+	// smt, err := db.Prepare("INSERT INTO TestResults (User_Id, questions_id, Score) SELECT u.User_Id, q.questions_id, $3 FROM questions q JOIN users u ON u.User_Id = $1 WHERE q.questions_id = $2")
+	// if err != nil {
+	// 	fmt.Println("the error from this prepared statement is", err.Error())
+	// 	return
+	// }
+
+	// defer smt.Close()
+	// for _, testR := range testResults{
+	// 	_, err = smt.Exec(*userID, testR.Question.QuestionID, score)
+	// 	if err != nil {
+	// 		fmt.Println("the error from this prepared statement is", err.Error())
+	// 		return
+	// 	}
+	// }
+
+	// _, err = smt.Exec(*userID, testResults[0].Question.QuestionID, score)
+	// if err != nil {
+	// 	fmt.Println("the error from this prepared statement is", err.Error())
+	// 	return
+	// }
+
+
+	templates.ExecuteTemplate(w, "testresults.html", data)
+}
+
+//getting questions according to topic or subject name
+
+func getQuestionsByTopicName(topicName string) ([]Question, error) {
+	smt := `SELECT * FROM questions WHERE topicsName=$1`
+	rows, err := db.Query(smt, topicName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions []Question
+
+	for rows.Next() {
+		q := Question{}
+		err = rows.Scan(&q.QuestionID, &q.TopicsName, &q.QuestionPrompt, &q.OptionA, &q.OptionB, &q.OptionC, &q.OptionD, &q.CorrectOption, &q.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		questions = append(questions, q)
+	}
+
+	return questions, nil
+}
+
+func renderQuestionsPage(w http.ResponseWriter, questions []Question) {
+
+	err := templates.ExecuteTemplate(w, "viewquestions.html", questions)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func viewComputerScienceQuestions(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	questions, err := getQuestionsByTopicName("Computer Science")
+	if err != nil {
+		http.Error(w, "Failed to get questions", http.StatusInternalServerError)
+		return
+	}
+
+	renderQuestionsPage(w, questions)
+}
+
+func viewArtificialIntelligenceQuestions(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	questions, err := getQuestionsByTopicName("Artificial Intelligence")
+	if err != nil {
+		http.Error(w, "Failed to get questions", http.StatusInternalServerError)
+		return
+	}
+
+	renderQuestionsPage(w, questions)
+}
+
+func viewDataAnalyticsQuestions(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	questions, err := getQuestionsByTopicName("Data Analytics")
+	if err != nil {
+		http.Error(w, "Failed to get questions", http.StatusInternalServerError)
+		return
+	}
+
+	renderQuestionsPage(w, questions)
+}
+
+func viewCodingQuestions(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	questions, err := getQuestionsByTopicName("Coding")
+	if err != nil {
+		http.Error(w, "Failed to get questions", http.StatusInternalServerError)
+		return
+	}
+
+	renderQuestionsPage(w, questions)
+}
+
+func checkresult(w http.ResponseWriter, r *http.Request) {
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	templates.ExecuteTemplate(w, "checkresult.html", nil)
+
+}
+
+func viewresult(w http.ResponseWriter, r *http.Request) {
+	// Check if user is logged in
+	userID := getUser(r)
+	if userID == nil || *userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	fmt.Println("got into viewresults page")
+
+	username := r.FormValue("username")
+
+	err := db.QueryRow(`SELECT User_id FROM Users WHERE username = $1`, username).Scan(&userID)
+
+	fmt.Println("username:", username)
+	//lets try this
+	rows, err := db.Query(`
+	SELECT questions.question_prompt, responses.answer, responses.is_correct, Users.username
+	FROM Users
+	INNER JOIN responses ON responses.User_id = Users.User_id
+	INNER JOIN questions ON responses.questions_id = questions.questions_id
+	LEFT JOIN TestResults ON responses.User_id = TestResults.User_id AND responses.questions_id = TestResults.questions_id
+	WHERE Users.User_id = $1 AND DATE(responses.created_at) = CURRENT_DATE AND questions.topicsName = (
+		SELECT topicsName 
+		FROM questions 
+		WHERE questions.questions_id = (
+			SELECT responses.questions_id 
+			FROM responses 
+			WHERE responses.User_id = Users.User_id 
+			ORDER BY responses.created_at DESC 
+			LIMIT 1
+		)
+	)`, userID)
+
+	if err != nil {
+		fmt.Println("error querying test results:", err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	score := 0
+	sumOfQuestions := 0
+	testResults := []TestResult{}
+	for rows.Next() {
+		var questionPrompt string
+		var answer int
+		var isCorrect bool
+		//var scores sql.NullInt64
+		var theusername string
+		// var testdate time.Time
+
+		err = rows.Scan(&questionPrompt, &answer, &isCorrect, &theusername)
+
+		if err != nil {
+			fmt.Println("error scanning test result:", err.Error())
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Question:", questionPrompt)
+		fmt.Println("Answer:", answer)
+		fmt.Println("IsCorrect:", isCorrect)
+
+		if isCorrect {
+			score++
+		}
+		sumOfQuestions++
+
+		fmt.Println(questionPrompt, answer, isCorrect)
+		question := Question{QuestionPrompt: questionPrompt}
+		response := Response{Answer: answer, IsCorrect: isCorrect}
+		testResult := TestResult{Question: question, Response: response}
+
+		testResults = append(testResults, testResult)
+	}
+	// to calculate the percentage of the right answers
+	var percentage float64
+	if sumOfQuestions > 0 {
+		percentage = (float64(score) / float64(sumOfQuestions)) * 100
+		fmt.Println("percentage is ", percentage)
+	} else {
+		fmt.Println("questions dont exist")
+	}
+	//percentage := ((float64(score)  / float64(sumOfQuestions)) * 100)
+
+	data := struct {
+		TestResults []TestResult
+		Score       int
+		Percentage  float64
+	}{
+		TestResults: testResults,
+		Score:       score,
+		Percentage:  percentage,
+	}
+	//fmt.Println(data)     delete later
+	//fmt.Println("successfully executed test results")
 	templates.ExecuteTemplate(w, "testresults.html", data)
 }

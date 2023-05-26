@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>User Profile</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<style>
+		.card-title {
+			font-size: 24px;
+			font-weight: bold;
+		}
+
+		.card-text {
+			font-size: 18px;
+		}
+	</style>
+</head>
+
+<body>
+<!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-dark text-light navbar-dark py-3 fixed-top position-absolute w-100 mb-5">
+        <div class="container">
+            <a href="/" class="navbar-brand">Home</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-collapse collapse" id="navmenu">
+                <ul class="navbar-nav ms-auto">
+                
+                    <li class="nav-item">
+                        <a href="/index" class="nav-link">view courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/checkresult" class="nav-link">check Result</a>
+                    </li>
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+    </nav>
+	<div class="container">
+		<div class="row">
+			<div class="col text-center">
+				<h1>User Profile</h1>
+			</div>
+		</div>
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Personal Information</h5>
+						<p class="card-text">Name: <span id="fullName">{{.FirstName}} {{.LastName}}</span></p>
+						<p class="card-text">Gender: <span id="gender">{{.Gender}}</span></p>
+						<p class="card-text">Age: <span id="age">{{.Age}}</span></p>
+						<p class="card-text">Email: <span id="email">{{.Email}}</span></p>
+						<h5 class="card-title mt-4">Account Information</h5>
+						<p class="card-text">Username: <span id="username">{{.Username}}</span></p>
+						<p class="card-text">User Type: <span id="userType">{{.UserType}}</span></p>
+						<a href="/update" style="display: none;" class="btn btn-primary">Edit Profile</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
